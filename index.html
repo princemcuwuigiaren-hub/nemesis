@@ -651,6 +651,7 @@ html{ background:color-mix(in srgb, var(--bg) 93%, #000); }
    M5 caveats: the Word file is hand-built and checked with python-docx and LibreOffice, not with Microsoft Word; installability and system back behaviour need a real phone; the service worker is in Canon's style (network first for the page, 6 second wait before the saved copy opens, a newer build is detected by SHA-256 and announced; no CACHE bump for ordinary changes, bump SHELL_CACHE in sw.js only when its PRECACHE list changes), so a newer version shows after a reload; Google Fonts are cached after the first online visit.
    P0 (chapter word budget): the chapter range belongs to the whole chapter. Each scene is asked for what is left after the earlier scenes of its chapter, shared by the scenes still to write. A chapter that ends under its range is only shown in the reader pill, never rejected. Untuned: how closely Gemini follows the numbers.
    P1 (scene intelligence): after every scene Gemini is asked what the scene establishes (stage 1, one extra call, recordScene) and the app checks it (stage 2, reconcile): names matched to the bible, duplicates removed by content-derived ids, quoted evidence verified against the scene text, claims kept as claims, names not in the bible flagged. Saved in IndexedDB v2 stores scene_state (one per scene) and ledger (one row per item, rebuilt from the recorded state only while the scene is approved, removed when the text changes or the scene is not approved). Edits, fixes and restores re-record the scene. Existing approved scenes show "Record N scenes" on the Write tab. Before the first upgrade of an existing database a backup is offered. Untuned: how well Gemini fills each list. Not yet used by the Writer or the check: that is P2 (handoff and continuity validation).
+   P2 (continuity): the Writer is given how the last scene ended, where people and objects stand, claims (labelled as claims, not facts) and time references, all from the ledger of approved scenes; the check gets the same and returns classified findings (error, mystery, conflict, unverified, possible), where an error without a quote found in the scene and something it conflicts with is downgraded to possible; the app adds its own checks (an object that changes hands with no event showing it, the same age or duration stated with a different number). Only errors stop Autonomous approval; the rest are notes. A name the bible does not know can be added as a character or place from where it is flagged. Untuned: false alarms from Gemini and from the app checks. Not built: POV and tense compliance, opening variety, voice differences.
    Not built yet: clue and foreshadowing records, tension and twist tools, reader feedback, chapter review (M6), humanizer (M7).
    Known issues: fonts load from Google Fonts (fallback fonts offline) and JetBrains Mono is referenced but never loaded; Gemini key is sent as a ?key= URL parameter, same as Canon; keyboard resizing inside sheets and real-device back gestures are untested.
    Floor: chapters flagged Needs review can still be written; scenes are written in the foreground only, and an interrupted scene can be recovered after reload only if its text had already arrived; the avoid-list is phrase based; scene text cannot be exported yet.
@@ -1436,7 +1437,7 @@ function kbTells(K,text){
   return out}
 const leakKey=l=>l.kind+"|"+l.propId+"|"+(l.who||"")+"|"+clip(l.detail,40);
 const dedupeLeaks=a=>{const s=new Set();return a.filter(l=>{const k=leakKey(l);if(s.has(k))return false;s.add(k);return true})};
-const issuesOf=q=>{q=q||{};const dm=new Set(q.dismissed||[]);return(q.purposeMet===false?1:0)+(q.changeMet===false?1:0)+arr0(q.leaks).filter(l=>!dm.has(leakKey(l))).length+(q.repeat||q.repeatsEarlier?1:0)};
+const issuesOf=q=>{q=q||{};const dm=new Set(q.dismissed||[]);return(q.purposeMet===false?1:0)+(q.changeMet===false?1:0)+arr0(q.leaks).filter(l=>!dm.has(leakKey(l))).length+(q.repeat||q.repeatsEarlier?1:0)+arr0(q.continuity).filter(c=>c.kind==="error"&&!dm.has(contKey(c))).length};
 /* knowledge rows follow approved scenes only: rewrite this scene's rows from its current check */
 async function syncKnowledge(rec){
   const all=await dbAll("knowledge"),ops=all.filter(k=>k.sceneId===rec.planId).map(k=>["del","knowledge",k.id]);
@@ -1459,7 +1460,8 @@ async function draftScene(n,D,s,note,X){
    sl=Math.max(80,Math.round(Math.max(0,wr[0]-done)/left)),sh=Math.max(sl+40,Math.round((wr[1]-done)/left)),W=Math.round((sl+sh)/2);
   const lastText=last?await textOf(D.byPlan[last.id]):"",tail=lastText?lastText.slice(-800).replace(/^\S*\s/,""):"",priors=[];
   for(const x of before.slice(-3))priors.push(await textOf(D.byPlan[x.id]));
-  const base="Task: Write the scene.\n"+X.head+(bible.length?"\n\nStory bible:\n"+bible.join("\n"):"")+kbBlock(K)+(X.prev.length?"\n\nWhat has happened just before:\n"+X.prev.join("\n"):"")
+  const LB=ledgerBlock(await ledgerCtx(n,D,s)); /* P2: where things stand, claims, time references, how the last scene ended */
+  const base="Task: Write the scene.\n"+X.head+(bible.length?"\n\nStory bible:\n"+bible.join("\n"):"")+kbBlock(K)+LB+(X.prev.length?"\n\nWhat has happened just before:\n"+X.prev.join("\n"):"")
    +(same.length?"\n\nAlready covered earlier in this chapter. Do not repeat or retell any of it:\n"+same.map(x=>"- "+clip(D.byPlan[x.id].summary,220)).join("\n"):"")
    +(tail?"\n\nThe previous scene ended with this passage. Continue from where it left off and do not retell it:\n\""+tail+"\"":"")
    +(done?"\n\nThe earlier scenes of this chapter already hold about "+done+" words. The whole chapter should come to about "+wr[0]+" to "+wr[1]+" words, so this scene carries what is left.":"")+"\n\nLength: about "+sl+" to "+sh+" words. Do not go over the top. Aim for the lower to middle part of the range, and if the scene's change has landed but you are well under the bottom, play the moment out further through action, reaction and dialogue, never description, reflection or filler. Begin inside the scene, with something new: a new action, moment or turn, never a recap of what the reader has just read. Show what happens through action, dialogue and concrete detail. Do not explain the meaning of the scene or end on a reflective summary line; end on a concrete beat. Do not resolve anything beyond what the plan says, and do not add plot threads, characters or facts that are not in the plan or story bible (small incidental details are fine). Characters with a profile in the story bible speak and act from it, shown through behaviour and choices and never by naming traits, and never at the cost of the scene's purpose. Never use these phrases: "+p.avoid.slice(0,60).join("; ")+"."+(has(note)?"\nNote from the author for this version: "+clip(note,400):"");
@@ -1487,7 +1489,9 @@ async function finishScene(n,D,s,X,dr,note,auto){
     }catch(e){}}
   const w=wc(text),now=Date.now(),vid=uid(),sid=rec0?rec0.id:uid(),still=!!(out.qa.style&&out.qa.style.off);
   const stx=await recordScene(n,D,s,text); /* P1 stage 1: what this scene establishes */
+  const appF=stx.ok?await appFindings(n,D,s,stx.ex,text):[];
   const qa=Object.assign({avoid:checkAvoid(text,p.avoid),words:w,target:dr.W,range:dr.range||null,repeat:dr.rep.ratio>=REP?{pct:Math.round(dr.rep.ratio*100),retried:!!dr.rep.retried}:null},out.qa,{styleFixed:rev&&!still});
+  qa.continuity=arr0(out.qa.continuity).concat(appF).slice(0,8);
   if(still)qa.style=Object.assign({},out.qa.style,{revised:rev});
   const rec={id:sid,novelId:n.id,planId:s.id,chapterPlanId:X.ch.id,chOrder:X.ch.order,scOrder:s.order,status:(auto&&!issuesOf(qa)&&!qa.checkFailed&&stx.ok)?"approved":"drafted",currentVersionId:vid,summary:out.summary||clip(text,300),words:w,qa,createdAt:rec0?rec0.createdAt:now,updatedAt:now};
   await dbBatch([["scenes",rec],["scene_versions",{id:vid,sceneId:sid,text,model:dr.model,reason:rec0?"regenerate":"generate",note:clip(note,400),createdAt:now,words:w,qa}],["scene_state",stateRec(n,s,rec,vid,stx)]]);
@@ -1496,20 +1500,21 @@ async function finishScene(n,D,s,X,dr,note,auto){
   await dbDel("jobs_local","wr-"+n.id);return rec}
 async function checkScene(n,D,s,X,text,K){
   if(K===undefined)K=await kbContext(n,D,s);
+  const lcb=ledgerCheckBlock(await ledgerCtx(n,D,s));
   const tells=kbTells(K,text),kb=kbCheckBlock(K),p=proseOf(n),pace=pacingOf(n),pf=await profFor(n,s),disc=(n.planApproach||"ending")==="discovery"&&pf.need.length>0;
   try{
-    const r=await generateJson("Task: Check the scene.\n"+X.head+(X.prev.length?"\n\nEarlier:\n"+X.prev.join("\n"):"")+(kb?"\n\nTracked information (labels P1, P2 and so on):\n"+kb:"")+(pf.lines.length?"\n\nCharacter profiles:\n"+pf.lines.join("\n"):"")+"\n\nScene text:\n"+clip(text,9000)
-     +'\n\nReturn JSON: {"summary":"2 to 3 sentences of what actually happens","purposeMet":true,"changeMet":true,"repeatsEarlier":false,"issues":["contradictions with the plan or earlier scenes, new plot threads, or characters acting or speaking out of character or out of their profile; at most 4; empty if none"],"style":{"off":false,"what":""}'
+    const r=await generateJson("Task: Check the scene.\n"+X.head+(X.prev.length?"\n\nEarlier:\n"+X.prev.join("\n"):"")+(kb?"\n\nTracked information (labels P1, P2 and so on):\n"+kb:"")+(pf.lines.length?"\n\nCharacter profiles:\n"+pf.lines.join("\n"):"")+lcb+"\n\nScene text:\n"+clip(text,9000)
+     +'\n\nReturn JSON: {"summary":"2 to 3 sentences of what actually happens","purposeMet":true,"changeMet":true,"repeatsEarlier":false,"issues":["contradictions with the plan or earlier scenes, new plot threads, or characters acting or speaking out of character or out of their profile; at most 4; empty if none"],"style":{"off":false,"what":""},"continuity":[{"kind":"error or mystery or conflict or unverified or possible","detail":"","against":"","evidence":""}]'
      +(kb?',"learned":[{"proposition":"P1","holder":"character name or reader","stance":"knows or believes or suspects","via":"witnessed or overheard or document or confession or deduction or told","believedValue":"what they think, only if it differs from the truth"}],"leaks":[{"proposition":"P2","type":"character or reader","who":"name","detail":"one short sentence"}]':'')
      +(disc?',"profiles":[{"name":"","voice":"","wants":"","manner":"","ties":""}]':'')
-     +'}\nrepeatsEarlier is true only if this scene mostly retells events the earlier scenes already covered.'
+     +'}\nrepeatsEarlier is true only if this scene mostly retells events the earlier scenes already covered.'+CONT_RULE
      +" The author chose these style settings: "+styleCheckText(p,pace)+". style.off is true only when the scene CLEARLY departs from them, for example ordinary actions given long description under lean or balanced description, stock atmospheric figures under sparse figurative language, lingering on intermediate steps or description under fast pacing, dialogue that mainly delivers background information or explains what both speakers already know, or characters explaining their own obvious feelings under minimal or moderate inner thoughts, or uncommon or showy vocabulary and hard-to-follow sentences under a plain or natural language level, or long runs of sentences that read as a list of actions. Judge the dominant effect, not single sentences, and ordinary variation is fine. style.what is one short sentence naming the clearest departure, and empty when off is false."
      +(kb?' learned lists tracked facts that a character or the reader newly learns, believes or suspects in this scene. leaks lists tracked facts that a character states or acts on without having held them before this scene or learning them within it, and HIDDEN facts that the narration reveals to the reader early. Do not list deliberate misdirection or anything the scene plan itself calls for. Use empty arrays when there is nothing to list.':'')
      +(disc?" profiles: for each of these characters, "+pf.need.join(", ")+", describe only what this scene actually shows (voice: how they speak; wants: what they are after; manner: how they habitually act or react; ties: how they stand with named others). Leave a field empty if the scene does not show it, and never invent.":""),
      {system:SYS_C,tries:1,timeoutMs:60000});
     const d=r.data||{},kk=K?kbFromCheck(K,d):{know:[],leaks:[]};
-    return{summary:has(d.summary)?clip(d.summary,500):"",profiles:arr0(d.profiles),qa:{purposeMet:d.purposeMet!==false,changeMet:d.changeMet!==false,repeatsEarlier:d.repeatsEarlier===true,issues:arr0(d.issues).map(x=>clip(x,200)).filter(has).slice(0,4),style:d.style&&d.style.off===true?{off:true,what:has(d.style.what)?clip(d.style.what,200):"the style settings are not being followed"}:null,know:kk.know,leaks:dedupeLeaks(tells.concat(kk.leaks)),checkFailed:false}}
-  }catch(e){return{summary:"",profiles:[],qa:{purposeMet:null,changeMet:null,repeatsEarlier:false,issues:[],style:null,know:[],leaks:tells,checkFailed:true}}}}
+    return{summary:has(d.summary)?clip(d.summary,500):"",profiles:arr0(d.profiles),qa:{purposeMet:d.purposeMet!==false,changeMet:d.changeMet!==false,repeatsEarlier:d.repeatsEarlier===true,issues:arr0(d.issues).map(x=>clip(x,200)).filter(has).slice(0,4),style:d.style&&d.style.off===true?{off:true,what:has(d.style.what)?clip(d.style.what,200):"the style settings are not being followed"}:null,know:kk.know,leaks:dedupeLeaks(tells.concat(kk.leaks)),continuity:normCont(d.continuity,text),checkFailed:false}}
+  }catch(e){return{summary:"",profiles:[],qa:{purposeMet:null,changeMet:null,repeatsEarlier:false,issues:[],style:null,know:[],leaks:tells,continuity:[],checkFailed:true}}}}
 /* ---------- M4.1: one style specification, word range, character profiles, knowledge coverage ---------- */
 /* Every option is a behavioural definition, never a quota. The "Level" lines calibrate the amount only. */
 const STYLE={
@@ -1868,6 +1873,7 @@ addEventListener("click",async e=>{
   if(d==="screstore"){const pid=t.dataset.pid,{rec}=await sceneCur(pid),vs=await dbBy("scene_versions","sceneId",rec.id),v=vs.find(x=>x.id===id);if(!v)return;rec.currentVersionId=v.id;rec.words=v.words;rec.qa=v.qa||{};rec.updatedAt=Date.now();await dbBatch([["scenes",rec]]);await syncAll(rec).catch(()=>{});toast("Version restored.");render();return openScene(pid)}
   if(d==="screcheck")return busyBtn(t,"Checking...",async()=>{const {n,D,s,rec,cur}=await sceneCur(id),X=sceneCtx(n,D,s),out=await checkScene(n,D,s,X,cur.text);
     if(out.qa.checkFailed){toast("The check failed again. Try again later.","error");return}
+    {const st0=await dbGet("scene_state",id);out.qa.continuity=arr0(out.qa.continuity).concat(stFresh(st0,rec)?await appFindings(n,D,s,st0.extract,cur.text):[]).slice(0,8)}
     cur.qa=Object.assign({},cur.qa,out.qa);rec.qa=cur.qa;if(out.summary)rec.summary=out.summary;rec.updatedAt=Date.now();await dbBatch([["scenes",rec],["scene_versions",cur]]);await syncKnowledge(rec);toast("Checked.");render();await openScene(id)});
 });
 async function addVersionQa(pid,text){const {n,rec,cur}=await sceneCur(pid),p=proseOf(n);cur.qa=Object.assign({},cur.qa||{},{avoid:checkAvoid(text,p.avoid)});rec.qa=cur.qa;await dbBatch([["scenes",rec],["scene_versions",cur]])}
@@ -1885,6 +1891,7 @@ function qaExtra(q,pid){
   else if(q.styleFixed)h+='<div class="field-hint" style="margin:0 0 8px">Nemesis revised this scene once to match your style settings.</div>';
   const k=arr0(q.know);
   if(k.length)h+='<div class="field-hint" style="margin:0 0 8px">Learned here: '+k.map(x=>esc(x.holderName)+" "+x.stance+" "+esc(x.propText||"")).join("; ")+'. Recorded in the Ledger when you approve the scene.</div>';
+  h+=contHtml(q,pid);
   return h}
 async function jobBanner(n,D){
   if(fr.on)return"";
@@ -2103,10 +2110,10 @@ async function stateCard(n,D){
   const ap=D.list.filter(s=>D.byPlan[s.id]&&D.byPlan[s.id].status==="approved"&&D.byPlan[s.id].currentVersionId);
   const rows=await dbBy("ledger","novelId",n.id),sts=await dbBy("scene_state","novelId",n.id),stBy=new Map(sts.map(x=>[x.id,x]));
   if(!ap.length&&!rows.length)return"";
-  const miss=ap.filter(s=>!stFresh(stBy.get(s.id),D.byPlan[s.id])),pend=rows.filter(r=>r.review==="pending").length,live=rows.filter(r=>r.review!=="dismissed").length;
+  const miss=ap.filter(s=>!stFresh(stBy.get(s.id),D.byPlan[s.id])),pend=rows.filter(r=>r.review==="pending").length,live=rows.filter(r=>r.review!=="dismissed").length,notes=D.list.reduce((a,s)=>a+(D.byPlan[s.id]?contOpen(D.byPlan[s.id].qa):0),0);
   return'<div class="bf-h"><h2>Story state</h2></div><div class="card" style="margin-bottom:14px"><div class="card-sub" style="margin:0 0 10px">'
    +(rows.length?live+' record'+(live===1?'':'s')+' from '+(ap.length-miss.length)+' approved scene'+(ap.length-miss.length===1?'':'s')+'.':'Nothing is recorded yet.')
-   +(pend?' '+pend+' need'+(pend===1?'s':'')+' a look.':'')
+   +(pend?' '+pend+' need'+(pend===1?'s':'')+' a look.':'')+(notes?' '+notes+' continuity note'+(notes===1?'':'s')+' on scenes. Open a scene to see them.':'')
    +(miss.length?' '+miss.length+' approved scene'+(miss.length===1?' is':'s are')+' not recorded yet.':'')+'</div><div class="btn-row">'
    +(rows.length?'<button class="btn primary" data-do="stopen">Open story state</button>':'')
    +(miss.length?'<button class="btn '+(rows.length?'ghost':'primary')+'" data-do="strecall">Record '+miss.length+' scene'+(miss.length===1?'':'s')+'</button>':'')+'</div></div>'}
@@ -2126,7 +2133,7 @@ async function openState(){
    +(list.length?list.map(r=>{const p=STPILL[r.status]||["neutral",r.status];
      return'<div style="padding:10px 0;border-top:1px solid var(--border-soft)"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px"><span class="pill '+p[0]+'">'+p[1]+'</span><span class="card-sub" style="margin:0">'+whereLbl(r.storyOrder)+(r.subject?' · '+esc(r.subject):'')+'</span></div><div>'+esc(r.text)+'</div>'
       +(r.evidence?'<div class="field-hint" style="margin:4px 0 0">“'+esc(r.evidence)+'”</div>':'')+(r.why?'<div class="field-hint warn" style="margin:4px 0 0">'+esc(r.why)+'</div>':'')
-      +(r.review==="pending"?'<div class="btn-row" style="margin-top:8px"><button class="btn ghost fit" data-do="stdismiss" data-id="'+esc(r.id)+'">Mark as deliberate</button><button class="btn ghost fit" data-do="fsc" data-id="'+esc(r.sceneId)+'">Open scene</button></div>':'')+'</div>'}).join(""):'<div class="field-hint">Nothing of this kind is recorded yet.</div>')
+      +(r.review==="pending"?'<div class="btn-row" style="margin-top:8px;flex-wrap:wrap">'+(r.kind==="person"?'<button class="btn primary fit" data-do="stadd" data-k="characters" data-id="'+esc(r.id)+'">Add as character</button><button class="btn ghost fit" data-do="stadd" data-k="places" data-id="'+esc(r.id)+'">Add as place</button>':'')+'<button class="btn ghost fit" data-do="stdismiss" data-id="'+esc(r.id)+'">Mark as deliberate</button><button class="btn ghost fit" data-do="fsc" data-id="'+esc(r.sceneId)+'">Open scene</button></div>':'')+'</div>'}).join(""):'<div class="field-hint">Nothing of this kind is recorded yet.</div>')
    +'<div class="btn-row" style="margin-top:14px"><button class="btn ghost" data-do="close">Close</button></div>')}
 async function sceneStateHtml(rec,pid){
   const st=await dbGet("scene_state",pid),rows=await dbBy("ledger","sceneId",pid),btn=l=>' <button class="btn ghost fit" data-do="strec1" data-id="'+pid+'">'+l+'</button>';
@@ -2137,9 +2144,9 @@ async function sceneStateHtml(rec,pid){
   else if(rec.status==="approved")h+='Story state: recorded, '+rows.filter(r=>r.review!=="dismissed").length+' items in the ledger.';
   else h+='Story state: recorded from this draft ('+exCount(st.extract)+' items). It joins the ledger when you approve the scene.';
   h+='</div>';
-  rows.filter(r=>r.review==="pending").forEach(r=>{h+='<div class="kb-flag"><div class="field-hint warn" style="margin:0">'+(r.kind==="person"?'Name not in your story bible: '+esc(r.subject):'Unverified: '+esc(r.text))+(r.kind!=="person"&&r.why?'. '+esc(r.why):'')+'</div><button class="btn ghost fit" data-do="stdismiss" data-id="'+esc(r.id)+'" data-sc="'+pid+'">Mark as deliberate</button></div>'});
+  rows.filter(r=>r.review==="pending").forEach(r=>{h+='<div class="kb-flag"><div class="field-hint warn" style="margin:0">'+(r.kind==="person"?'Name not in your story bible: '+esc(r.subject):'Unverified: '+esc(r.text))+(r.kind!=="person"&&r.why?'. '+esc(r.why):'')+'</div><div class="btn-row" style="margin:6px 0 0;flex-wrap:wrap">'+(r.kind==="person"?'<button class="btn primary fit" data-do="stadd" data-k="characters" data-name="'+esc(r.subject)+'" data-so="'+r.storyOrder+'" data-sc="'+pid+'">Add as character</button><button class="btn ghost fit" data-do="stadd" data-k="places" data-name="'+esc(r.subject)+'" data-so="'+r.storyOrder+'" data-sc="'+pid+'">Add as place</button>':'')+'<button class="btn ghost fit" data-do="stdismiss" data-id="'+esc(r.id)+'" data-sc="'+pid+'">Mark as deliberate</button></div></div>'});
   if(st&&stFresh(st,rec)&&rec.status!=="approved"){const ents=await dbBy("entities","novelId",rec.novelId),text=await textOf(rec);
-    reconcile(st.extract,ents,text,{novelId:rec.novelId,sceneId:pid,recId:rec.id,versionId:rec.currentVersionId,storyOrder:0}).filter(r=>r.kind==="person").forEach(r=>{h+='<div class="field-hint warn" style="margin:0 0 8px">Name not in your story bible: '+esc(r.subject)+'</div>'})}
+    reconcile(st.extract,ents,text,{novelId:rec.novelId,sceneId:pid,recId:rec.id,versionId:rec.currentVersionId,storyOrder:rec.chOrder*1000+rec.scOrder}).filter(r=>r.kind==="person").forEach(r=>{h+='<div class="kb-flag"><div class="field-hint warn" style="margin:0">Name not in your story bible: '+esc(r.subject)+'</div><div class="btn-row" style="margin:6px 0 0;flex-wrap:wrap"><button class="btn primary fit" data-do="stadd" data-k="characters" data-name="'+esc(r.subject)+'" data-so="'+r.storyOrder+'" data-sc="'+pid+'">Add as character</button><button class="btn ghost fit" data-do="stadd" data-k="places" data-name="'+esc(r.subject)+'" data-so="'+r.storyOrder+'" data-sc="'+pid+'">Add as place</button></div></div>'})}
   return h}
 addEventListener("click",async e=>{
   const t=e.target.closest("[data-do]");if(!t)return;const d=t.dataset.do,id=t.dataset.id;
@@ -2154,6 +2161,70 @@ addEventListener("click",async e=>{
     const n=await dbGet("novels",S.novelId),D=await floorData(n),sts=new Map((await dbBy("scene_state","novelId",n.id)).map(x=>[x.id,x]));let ok=0,bad=0;
     for(const s of D.list){const r=D.byPlan[s.id];if(!r||r.status!=="approved"||!r.currentVersionId||stFresh(sts.get(s.id),r))continue;try{(await rerecord(s.id))?ok++:bad++}catch(x){bad++}}
     toast("Recorded "+ok+" scene"+(ok===1?"":"s")+(bad?". "+bad+" failed, try again.":"."),bad?"error":"success");render()})});
+
+/* ---------- P2: the Writer and the check read the ledger; continuity findings are classified and backed by evidence ---------- */
+const CKINDS={error:["alert","Continuity error"],possible:["voice","Possible inconsistency"],conflict:["neutral","Conflicting accounts"],mystery:["neutral","Possible deliberate mystery, left as it is"],unverified:["neutral","Unverified claim"]};
+const contKey=c=>"c|"+c.kind+"|"+hashS(nrm(c.detail));
+/* what the recorded story state says just before this scene. Only approved scenes are in the ledger; the previous scene's ending is taken from its record even when it is still a draft. */
+async function ledgerCtx(n,D,s){
+  const so=D.co[s.parentId].order*1000+s.order,idx=D.list.findIndex(x=>x.id===s.id),prevS=D.list.slice(0,idx).reverse().find(x=>D.byPlan[x.id]&&D.byPlan[x.id].currentVersionId),pst=prevS?await dbGet("scene_state",prevS.id):null;
+  const all=(await dbBy("ledger","novelId",n.id)).filter(r=>r.storyOrder<so&&r.kind!=="person"&&r.status!=="unverified").sort((a,b)=>a.storyOrder-b.storyOrder);
+  const latest=k=>{const m=new Map();all.filter(r=>r.kind===k).forEach(r=>m.set(nrm(r.subject),r));return[...m.values()]},lb=r=>" ("+whereLbl(r.storyOrder)+")";
+  return{so,ending:pst&&pst.status==="recorded"?pst.ending:"",
+   stand:latest("place").concat(latest("object")).slice(-14).map(r=>"- "+r.subject+": "+r.text+lb(r)),
+   claims:all.filter(r=>r.kind==="claim").slice(-6).map(r=>"- "+r.subject+" ("+(r.status==="claimed"?"claimed":r.status)+"): "+r.text+lb(r)),
+   time:all.filter(r=>r.kind==="time").slice(-6).map(r=>"- "+(r.subject?r.subject+": ":"")+r.text+lb(r)),
+   events:all.filter(r=>r.kind==="event").slice(-6).map(r=>"- "+r.text+lb(r))}}
+const ledgerBlock=L=>(L.ending?"\n\nHow the previous scene ended (recorded): "+L.ending:"")
+ +(L.stand.length?"\n\nWhere things stand, recorded from earlier scenes. Stay consistent with it. If this scene moves a person or object somewhere new, show how it got there:\n"+L.stand.join("\n"):"")
+ +(L.claims.length?"\n\nClaims made so far. These are what someone said, not established facts. Do not state them as true unless the story confirms them:\n"+L.claims.join("\n"):"")
+ +(L.time.length?"\n\nTime references so far. Keep ages, dates and durations consistent with them:\n"+L.time.join("\n"):"");
+const ledgerCheckBlock=L=>(L.stand.length||L.claims.length||L.time.length||L.events.length)?"\n\nRecorded story state (from approved earlier scenes, each with its source):\n"+[].concat(L.ending?["How the previous scene ended: "+L.ending]:[],L.stand.length?["Where things stand:"].concat(L.stand):[],L.events.length?["Recent events:"].concat(L.events):[],L.claims.length?["Claims (what someone said, not fact):"].concat(L.claims):[],L.time.length?["Time references:"].concat(L.time):[]).join("\n"):"";
+const CONT_RULE=" continuity lists conflicts between this scene and the recorded story state, the plan or the earlier scenes. kind is error only when this scene's own narration contradicts something recorded as shown and there is no sign it is deliberate; mystery when the difference looks like an intended mystery or a character hiding something; conflict when two characters or sources give different versions; unverified when a claim is treated as established fact without support; possible when more context is needed. A character's lie, mistaken belief or deliberate mystery is never an error. detail is one sentence, against names the recorded item (with its chapter and scene) or earlier scene it conflicts with, and evidence is a short quote copied from this scene. At most 5; empty if none.";
+/* an error needs a quote that is really in the scene and something it conflicts with. Without both it is only a possible inconsistency. */
+function normCont(a,text){const tn=nrm(text);
+  return arr0(a).map(x=>{const k=x&&CKINDS[x.kind]?x.kind:"possible",ev=x&&has(x.evidence)&&evOk(x.evidence,tn)?clip(x.evidence,200):"";
+    return{kind:k==="error"&&(!ev||!has(x&&x.against))?"possible":k,detail:clip(x&&x.detail,240),against:clip(x&&x.against,200),evidence:ev,src:"ai"}}).filter(c=>has(c.detail)).slice(0,5)}
+/* code-side checks, which never depend on the AI's memory */
+const NUMW={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50,sixty:60,seventy:70,eighty:80,ninety:90};
+function timeNum(txt){
+  const m=String(txt||"").toLowerCase().match(/\b(\d{1,3}|(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)(?:[- ](?:one|two|three|four|five|six|seven|eight|nine))?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen)[- ](year|month|week|day)s?(?:[- ](old)|\s+(ago))?/);
+  if(!m)return null;const w=m[1],n=/^\d/.test(w)?+w:w.split(/[- ]/).reduce((a,x)=>a+(NUMW[x]||0),0);
+  return n?{n,unit:m[2],kind:m[3]?"old":m[4]?"ago":"span"}:null}
+const sameSubj=(a,b)=>{a=nrm(a);b=nrm(b);if(!a||!b)return false;if(a===b)return true;const x=a.split(" "),y=b.split(" ");return x.every(w=>y.includes(w))||y.every(w=>x.includes(w))};
+async function appFindings(n,D,s,ex,text){
+  if(!ex)return[];
+  const so=D.co[s.parentId].order*1000+s.order,tn=nrm(text),all=(await dbBy("ledger","novelId",n.id)).filter(r=>r.storyOrder<so&&r.status!=="unverified").sort((a,b)=>a.storyOrder-b.storyOrder),out=[];
+  const evq=e=>e&&evOk(e,tn)?clip(e,200):"";
+  /* an object that changes hands or place with no event in the scene that shows it */
+  const objs=new Map();all.filter(r=>r.kind==="object").forEach(r=>objs.set(nrm(r.subject),r));
+  arr0(ex.objects).forEach(x=>{const prev=[...objs.values()].find(r=>sameSubj(r.subject,x.item));
+    if(!prev||!prev.value||!x.holder||sameSubj(prev.value,x.holder))return;
+    const last=nrm(x.item).split(" ").pop(),shown=arr0(ex.events).some(e=>{const w=nrm(e.what);return w.includes(nrm(x.item))||(last.length>3&&w.includes(last))});
+    if(!shown)out.push({kind:"possible",detail:'"'+x.item+'" was last recorded with '+prev.value+'. This scene has it with '+x.holder+' and shows no handover.',against:whereLbl(prev.storyOrder)+": "+prev.text,evidence:evq(x.ev),src:"app"})});
+  /* the same duration, age or time-ago stated with a different number about the same subject */
+  arr0(ex.time).forEach(x=>{const t=timeNum(x.text);if(!t||!has(x.about))return;
+    const prev=all.filter(r=>r.kind==="time"&&sameSubj(r.subject,x.about)).reverse().find(r=>{const t0=timeNum(r.text);return t0&&t0.unit===t.unit&&t0.kind===t.kind&&t0.n!==t.n});
+    if(prev)out.push({kind:"possible",detail:'"'+x.about+'": '+whereLbl(prev.storyOrder)+' says "'+prev.text+'", this scene says "'+x.text+'".',against:whereLbl(prev.storyOrder)+": "+prev.text,evidence:evq(x.ev),src:"app"})});
+  return out.slice(0,4)}
+function contHtml(q,pid){
+  const dm=new Set(q.dismissed||[]);let h="";
+  arr0(q.continuity).forEach(c=>{if(dm.has(contKey(c)))return;const p=CKINDS[c.kind]||CKINDS.possible,soft=c.kind!=="error"&&c.kind!=="possible";
+    h+='<div class="kb-flag"><div class="field-hint'+(soft?'':' warn')+'" style="margin:0"><span class="pill '+p[0]+'" style="margin-right:6px">'+esc(p[1])+'</span>'+esc(c.detail)+(c.against?' <span style="opacity:.8">Against: '+esc(c.against)+'.</span>':'')+(c.evidence?' “'+esc(c.evidence)+'”':'')+'</div><button class="btn ghost fit" data-do="scdismiss" data-id="'+pid+'" data-key="'+esc(contKey(c))+'">Mark as deliberate</button></div>'});
+  return h}
+const contOpen=q=>arr0(q&&q.continuity).filter(c=>!new Set(q.dismissed||[]).has(contKey(c))).length;
+/* cast expands: a name the story bible does not know can be added from where it was flagged. No Gemini call is needed, the ledger is rebuilt from what is already recorded. */
+addEventListener("click",async e=>{
+  const t=e.target.closest("[data-do=stadd]");if(!t)return;
+  const n=await dbGet("novels",S.novelId),ents=await dbBy("entities","novelId",n.id),r=t.dataset.id?await dbGet("ledger",t.dataset.id):null,name=clip(t.dataset.name||(r&&r.subject),60),so=+(t.dataset.so||(r&&r.storyOrder)||0),k=t.dataset.k==="places"?"places":"characters";
+  if(!name)return;
+  if(ents.some(x=>sameNm(x.name,name))){toast("That name is already in the story bible.");return}
+  const ent=await save("entities",{novelId:n.id,kind:k,name,summary:"First appears in "+whereLbl(so).toLowerCase()+". Added from the scene.",status:"approved",prov:{origin:"director",ref:(r&&r.id)||"",at:Date.now()}});
+  await save("decisions",{novelId:n.id,targetType:"entity",targetId:ent.id,action:"added-from-scene",at:Date.now()});
+  const recs=(await dbAll("scenes")).filter(x=>x.novelId===n.id);for(const rc of recs)await syncLedger(rc);
+  toast("Added "+name+" to the story bible as a "+(k==="places"?"place":"character")+".");
+  if(t.dataset.sc){render();return openScene(t.dataset.sc)}
+  render();return openState()});
 
 try{if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol)){
   /* one notice per page load, whichever signal arrives first: the service worker saying a newer build finished downloading, or a new sw.js installing */
