@@ -651,7 +651,8 @@ html{ background:color-mix(in srgb, var(--bg) 93%, #000); }
    M5 caveats: the Word file is hand-built and checked with python-docx and LibreOffice, not with Microsoft Word; installability and system back behaviour need a real phone; the service worker is in Canon's style (network first for the page, 6 second wait before the saved copy opens, a newer build is detected by SHA-256 and announced; no CACHE bump for ordinary changes, bump SHELL_CACHE in sw.js only when its PRECACHE list changes), so a newer version shows after a reload; Google Fonts are cached after the first online visit.
    P0 (chapter word budget): the chapter range belongs to the whole chapter. Each scene is asked for what is left after the earlier scenes of its chapter, shared by the scenes still to write. A chapter that ends under its range is only shown in the reader pill, never rejected. Untuned: how closely Gemini follows the numbers.
    P1 (scene intelligence): after every scene Gemini is asked what the scene establishes (stage 1, one extra call, recordScene) and the app checks it (stage 2, reconcile): names matched to the bible, duplicates removed by content-derived ids, quoted evidence verified against the scene text, claims kept as claims, names not in the bible flagged. Saved in IndexedDB v2 stores scene_state (one per scene) and ledger (one row per item, rebuilt from the recorded state only while the scene is approved, removed when the text changes or the scene is not approved). Edits, fixes and restores re-record the scene. Existing approved scenes show "Record N scenes" on the Write tab. Before the first upgrade of an existing database a backup is offered. Untuned: how well Gemini fills each list. Not yet used by the Writer or the check: that is P2 (handoff and continuity validation).
-   P2 (continuity): the Writer is given how the last scene ended, where people and objects stand, claims (labelled as claims, not facts) and time references, all from the ledger of approved scenes; the check gets the same and returns classified findings (error, mystery, conflict, unverified, possible), where an error without a quote found in the scene and something it conflicts with is downgraded to possible; the app adds its own checks (an object that changes hands with no event showing it, the same age or duration stated with a different number). Only errors stop Autonomous approval; the rest are notes. A name the bible does not know can be added as a character or place from where it is flagged. Untuned: false alarms from Gemini and from the app checks. Not built: POV and tense compliance, opening variety, voice differences.
+   P2 (continuity): the Writer is given how the last scene ended, where people and objects stand, claims (labelled as claims, not facts) and time references, all from the ledger of approved scenes; the check gets the same and returns classified findings (error, mystery, conflict, unverified, possible), where an error without a quote found in the scene and something it conflicts with is downgraded to possible; the app adds its own checks (an object that changes hands with no event showing it, the same age or duration stated with a different number). Only errors stop Autonomous approval; the rest are notes. A name the bible does not know can be added as a character or place from where it is flagged. Untuned: false alarms from Gemini and from the app checks. POV and tense (P2b): the Writer gets operational definitions of first person, third limited and omniscient and of past and present tense, a viewpoint character per scene (book default in Prose preferences, override on the scene in the plan, else the first character in the scene) and a closing reminder that the plan and summaries are third-person notes; the check judges person, tense and viewpoint and a code guard counts I, me and my in the narration; one targeted rewrite fixes drift, and unresolved drift stops Autonomous approval. Tense is judged by Gemini only. P4 (characters and generation quality): profiles keep the four short fields and gain nine optional deep ones (beliefs, needs, flaws, reacts, decides, avoids, habits, history, arc); the planner, the Writer and the check read the same character text; each scene check can propose changes to a profile (evidence must be a line really in the scene), saved on the character as suggestions and applied only when the director presses Apply, never overwriting silently; stock gestures (nine families) are counted by code across the last three scenes and the Writer is told which to avoid; the last three openings are shown to the Writer and a third identical opening kind is noted; the check can note two voices that could be swapped. All of these are notes, none blocks approval. Untuned: gesture patterns and opening kinds are regexes and will miss variations; whether Gemini obeys the avoid lines is not yet judged on real output.
+   P3 (planning): chapters are planned one at a time (1, 3, 5 or 10 per run, default 1), each from the saved ones before it, with the previous chapter ending spelled out, character profiles, the last three chapter plans in detail and the recorded story state. Each chapter carries a plan document (purpose, opening, ending, events, wants, revelations, threads, open questions, timeline, dependencies), is validated (code rules plus one Gemini call; an error needs a line quoted from an earlier chapter, otherwise it is only possible), and is auto-approved only in Guided or Autonomous with no errors and a finished check. A run stops at the first chapter that needs review or fails and keeps what was saved. Untuned: validation false alarms.
    Not built yet: clue and foreshadowing records, tension and twist tools, reader feedback, chapter review (M6), humanizer (M7).
    Known issues: fonts load from Google Fonts (fallback fonts offline) and JetBrains Mono is referenced but never loaded; Gemini key is sent as a ?key= URL parameter, same as Canon; keyboard resizing inside sheets and real-device back gestures are untested.
    Floor: chapters flagged Needs review can still be written; scenes are written in the foreground only, and an interrupted scene can be recovered after reload only if its text had already arrived; the avoid-list is phrase based; scene text cannot be exported yet.
@@ -1096,7 +1097,7 @@ addEventListener("click",async e=>{
     const nm=$("#eN").value.trim();if(!nm)return toast("Give it a name first.");
     const e0=id?await dbGet("entities",id):{novelId:S.novelId,kind:t.dataset.cat,status:"approved",prov:{origin:"director",at:Date.now()}};
     e0.name=nm;e0.summary=$("#eS").value.trim();
-    if($("#eV")){const pr={voice:clip($("#eV").value,200),wants:clip($("#eW").value,200),manner:clip($("#eM").value,200),ties:clip($("#eT").value,200)};if(profHas(pr))e0.profile=Object.assign(pr,{status:"approved",from:"director"});else delete e0.profile}
+    if($("#eV")){const pr={voice:clip($("#eV").value,200),wants:clip($("#eW").value,200),manner:clip($("#eM").value,200),ties:clip($("#eT").value,200)};if(profHas(pr))e0.profile=Object.assign(pr,{status:"approved",from:"director",deep:readDeep(),updates:arr0(e0.profile&&e0.profile.updates)});else delete e0.profile}
     await save("entities",e0);await closeSheet();toast("Saved");await render();if(!id)openEnt(e0.id);return}
   if(d==="addfact"){const v=$("#eF").value.trim();if(!v)return;await save("facts",{entityId:id,text:v,scope:"permanent",status:"approved",prov:{origin:"director",at:Date.now()}});return openEnt(id)}
   if(d==="delfact"){const f=await dbGet("facts",id);f.status="superseded";await save("facts",f);return openEnt(f.entityId)}
@@ -1123,14 +1124,14 @@ const sceneRange=n=>{const k=Math.max(1,Math.min(8,Math.round(cw(n)/700)));retur
 const PACE_TXT={fast:"Pacing: FAST. Move quickly: each development should take about 2 to 4 chapters. Keep scenes tight and still give each major character a real beat every few chapters.",balanced:"Pacing: BALANCED. Mix plot progress with character and relationship development: each development should take about 4 to 6 chapters.",slow:"Pacing: SLOW. Spend about 6 to 8 chapters on each development, on consequences, character depth and relationships that already exist in the plan. Slow means depth, never filler."};
 const GUARD="Every chapter must advance at least one listed development. Every scene must have a purpose and a concrete change (a decision, a revelation, a shift in a relationship or a changed situation). Never add plot threads, characters, factions or twists that are not in the story bible or the approved plan.";
 function stepOf(ns,n){
-  const L=l=>ns.filter(x=>x.layer===l),nm=["","central narrative","arcs","developments","chapters"],lb=["","Draft the central narrative","Draft arcs","Draft developments","Draft chapters and scenes"];
+  const L=l=>ns.filter(x=>x.layer===l),nm=["","central narrative","arcs","developments","chapters"],lb=["","Draft the central narrative","Draft arcs","Draft developments",(batchOf(n)===1?"Plan next chapter":"Plan next "+batchOf(n)+" chapters")];
   for(let l=1;l<=4;l++){
     const c=L(l);
     if(!c.length)return l>1&&L(l-1).some(x=>x.status==="proposed")?{note:"Review the proposed "+nm[l-1]+" first."}:{layer:l,label:lb[l]};
     if(c.some(x=>x.status==="proposed"))return{note:"Review the proposed "+nm[l]+" to continue."}}
   const dv=L(3).filter(x=>x.status==="approved"||x.status==="developing").length;
-  if(L(4).length+10>dv*CPD[pacingOf(n)])return{layer:3,label:"Plan more developments",more:true};
-  return{layer:4,label:"Plan more chapters",more:true}}
+  if(L(4).length+Math.min(10,Math.max(3,batchOf(n)))>dv*CPD[pacingOf(n)])return{layer:3,label:"Plan more developments",more:true};
+  return{layer:4,label:batchOf(n)===1?"Plan next chapter":"Plan next "+batchOf(n)+" chapters",more:true}}
 function scopeHtml(p,v){
   const t=tgt(v),pre=LENS.find(x=>x[0]===t),wr=wordsRange(v),wp=WRANGES.find(x=>x[0]===wr[0]&&x[1]===wr[1]);
   return '<div class="field"><label>Pacing</label><div class="seg-control" id="'+p+'P">'+PACES.map(x=>'<button type="button" data-v="'+x[0]+'"'+(x[0]===pacingOf(v)?' class="active"':'')+'>'+x[1]+'</button>').join("")+'</div><div class="field-hint">How fast the plan moves. Never filler, never new threads.</div></div>'
@@ -1152,13 +1153,14 @@ const ARCH="You are the Story Architect of a novel production system. You plan n
 const APPROACH={ending:"Planning approach: ENDING FIRST. Decide where the story must end, then plan backward so every arc and development earns that ending.",discovery:"Planning approach: DISCOVERY. Do not lock in an ending. Plan forward from the premise and keep open questions the story can discover while writing."};
 async function planCtx(n,all){
   const ents=(await dbBy("entities","novelId",n.id)).slice(0,14),ln=[];
-  for(const e of ents){const f=(await dbBy("facts","entityId",e.id)).filter(x=>x.status!=="superseded").slice(0,3).map(x=>x.text);ln.push("- "+e.name+" ("+catLabel(e.kind)+"): "+clip(e.summary,160)+(f.length?" Facts: "+f.join("; "):""))}
+  for(const e of ents){const f=(await dbBy("facts","entityId",e.id)).filter(x=>x.status!=="superseded").slice(0,3).map(x=>x.text);ln.push("- "+e.name+" ("+catLabel(e.kind)+"): "+clip(e.summary,160)+(f.length?" Facts: "+f.join("; "):"")+(isChar(e)&&profLive(e)?" Profile: "+profFull(e.profile,420):""))}
   let s="Novel: "+n.title+"\nConcept: "+(n.premise||"(none yet. Invent an original concept that fits the title.)")+"\nTarget length: about "+tgt(n)+" chapters of about "+cw(n)+" words (a guide, not a cap: the story may run longer if it needs to)\nPacing: "+pacingOf(n)+"\nChapters planned so far: "+okd(all,4).length+"\nStory bible:\n"+(ln.join("\n")||"(empty)");
   const c=okd(all,1)[0],a=okd(all,2),dv=okd(all,3),ch=okd(all,4);
   if(c)s+="\n\nCentral narrative:\n"+clip(c.summary,900);
   if(a.length)s+="\n\nArcs:\n"+a.map((x,i)=>"A"+(i+1)+": "+x.title+": "+clip(x.summary,200)).join("\n");
   if(dv.length)s+="\n\nDevelopments:\n"+dv.map((x,i)=>"D"+(i+1)+": "+x.title+": "+clip(x.summary,200)).join("\n");
-  if(ch.length)s+="\n\nChapters so far (last 10 of "+ch.length+"):\n"+ch.slice(-10).map(x=>"Chapter "+x.order+": "+x.title+": "+clip(x.summary,160)).join("\n");
+  if(ch.length){const L=ch.slice(-10),m=Math.max(0,L.length-3);s+="\n\nChapters so far (last 10 of "+ch.length+"; the last three in detail):\n"+L.map((x,i)=>"Chapter "+x.order+": "+x.title+": "+clip(x.summary,i<m?160:300)+(i>=m&&x.doc?"\n"+docFull(x.doc):"")).join("\n")}
+  s+=await planStanding(n);
   const rj=all.filter(x=>x.status==="rejected"&&x.layer<5).map(x=>x.title);
   if(rj.length)s+="\n\nRejected by the director, do not propose again:\n"+rj.slice(-15).join("; ");
   return s}
@@ -1194,7 +1196,7 @@ function parsePlan(l,d,n,all,batch){
       if(!c||!has(c.title)||!has(c.summary))return;
       const dp=[...new Set(lbls(c.develops).map(s=>id[s]).filter(Boolean))];if(!dp.length){nd++;return}
       const sc=arr0(c.scenes).filter(s=>s&&has(s.title)).slice(0,mx+2);if(!sc.length)return;
-      const ch=mk({layer:4,order:k++,title:clip(c.title,90),summary:clip(c.summary,400),dependsOn:dp});out.push(ch);
+      const ch=mk({layer:4,order:k++,title:clip(c.title,90),summary:clip(c.summary,400),dependsOn:dp,doc:normDoc(c)});out.push(ch);
       sc.forEach((s,j)=>out.push(mk({layer:5,parentId:ch.id,order:j+1,title:clip(s.title,90),summary:clip(s.purpose||s.summary,300),change:clip(s.change,200),participants:arr0(s.participants).map(p=>clip(p,40)).filter(has).slice(0,6)})))})}
   if(!out.length)throw(l===4&&nd?new Error("No usable chapters: none named a development"):bad());
   return out}
@@ -1205,6 +1207,7 @@ async function planStep(){
   try{
     const n=await dbGet("novels",S.novelId),all=await dbBy("plan","novelId",n.id),st=stepOf(act(all),n);
     if(!st.layer){toast(st.note);return}
+    if(st.layer===4){await planChapters(n,all,st);render();return}
     const cnt0=act(all).filter(x=>x.layer===st.layer).length;
     toast("Nemesis is drafting. This can take a moment.","info");
     const ctx=await planCtx(n,all),sys=ARCH+"\n"+APPROACH[n.planApproach||"ending"]+(st.layer>=3?"\n"+PACE_TXT[pacingOf(n)]+"\n"+GUARD:"");
@@ -1248,7 +1251,7 @@ const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):"";
 const stPill=x=>x.review?'<span class="pill" style="background:var(--alert-soft);color:var(--alert-deep)">Needs review</span>':'<span class="pill '+(x.status==="proposed"?"voice":"canon")+'">'+(x.status==="proposed"?"Proposed":"Approved")+'</span>';
 function nodeCard(x,all){
   const kids=x.layer===4?act(all).filter(y=>y.layer===5&&y.parentId===x.id).length:0,lab=x.layer===4?"Chapter "+x.order:x.layer===2?cap(x.kind):"";
-  return '<div class="card" data-do="node" data-id="'+x.id+'" style="cursor:pointer"><div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">'+stPill(x)+'<span class="card-sub" style="margin:0">'+esc(lab)+(kids?(lab?" · ":"")+kids+(kids===1?" scene":" scenes"):"")+'</span></div><div class="card-title">'+esc(x.title)+'</div><div class="card-sub bf-clamp">'+esc(x.summary)+'</div>'
+  return '<div class="card" data-do="node" data-id="'+x.id+'" style="cursor:pointer"><div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;flex-wrap:wrap">'+stPill(x)+chPill(x)+'<span class="card-sub" style="margin:0">'+esc(lab)+(kids?(lab?" · ":"")+kids+(kids===1?" scene":" scenes"):"")+'</span></div><div class="card-title">'+esc(x.title)+'</div><div class="card-sub bf-clamp">'+esc(x.summary)+'</div>'
    +(x.status==="proposed"&&x.layer<4?'<div class="btn-row" style="margin-top:10px"><button class="btn primary" data-do="nodeok" data-id="'+x.id+'">Approve</button><button class="btn ghost" data-do="nodeno" data-id="'+x.id+'">Reject</button></div>':'')+'</div>'}
 async function planTab(n){
   const all=await dbBy("plan","novelId",n.id),ns=act(all),st=stepOf(ns,n),ap=n.planApproach||"ending",pc=pacingOf(n);
@@ -1257,6 +1260,7 @@ async function planTab(n){
    +'<div class="bf-prog"><div class="bf-prog-top"><span>'+planned+' of '+T+' chapters planned</span><span>'+wordsRange(n)[0]+' to '+wordsRange(n)[1]+' words each</span></div><div class="bf-bar"><i style="width:'+Math.min(100,Math.round(planned/T*100))+'%"></i></div>'+(planned>=T?'<p class="bf-note" style="margin:6px 0 0">Target reached. You can keep planning past it.</p>':'')+'</div>'
    +'<div class="bf-lab">Approach</div><div class="seg-control" id="apSeg" style="margin-bottom:10px"><button type="button" data-ap="ending" class="'+(ap==="ending"?"active":"")+'">Ending first</button><button type="button" data-ap="discovery" class="'+(ap==="discovery"?"active":"")+'">Discovery</button></div>'
    +'<div class="bf-lab">Pacing</div><div class="seg-control" id="pcSeg" style="margin-bottom:12px">'+PACES.map(x=>'<button type="button" data-pc="'+x[0]+'" class="'+(x[0]===pc?"active":"")+'">'+x[1]+'</button>').join("")+'</div>'
+   +'<div class="bf-lab">Chapters per run</div><div class="seg-control" id="bcSeg" style="margin-bottom:6px">'+BATCHES.map(b=>'<button type="button" data-bc="'+b+'" class="'+(b===batchOf(n)?"active":"")+'">'+b+'</button>').join("")+'</div><div class="field-hint" style="margin:0 0 12px">Each chapter is planned from the saved ones before it. A run stops early if a chapter needs your review'+((n.autonomy||"guided")==="handson"?". In Hands-on every chapter needs your approval, so it plans one at a time":"")+'.</div>'
    +(st.layer?'<p class="bf-concept" style="font-size:14px">'+(ns.length?"Next: "+st.label.toLowerCase()+".":"Nemesis turns your concept and approved story bible into a layered plan, one step at a time.")+'</p><button class="btn primary" data-do="planstep" style="width:100%;margin-top:12px">'+st.label+'</button>':'<p class="bf-concept" style="font-size:14px">'+st.note+'</p>')+'</div>';
   for(let l=1;l<=4;l++){
     const L=ns.filter(x=>x.layer===l).sort((a,b)=>(a.order||0)-(b.order||0));if(!L.length)continue;
@@ -1271,6 +1275,8 @@ async function openNode(id){
    +'<div class="field"><label for="pnT">Title</label><input type="text" id="pnT" value="'+esc(x.title)+'" data-autofocus></div>'
    +'<div class="field"><label for="pnS">'+(x.layer===5?"Purpose":"Summary")+'</label><textarea id="pnS" rows="'+(x.layer===1?9:5)+'">'+esc(x.summary)+'</textarea></div>'+(x.layer===5?'<div class="field"><label for="pnC">What changes</label><input type="text" id="pnC" value="'+esc(x.change||"")+'" placeholder="What is different by the end of the scene"></div>':'')
    +(x.layer===5&&(x.participants||[]).length?'<div class="field-hint" style="margin:-6px 0 12px">With '+esc(x.participants.join(", "))+'</div>':'')
+   +(x.layer===5?'<div class="field"><label for="pnV">Viewpoint character</label><input type="text" id="pnV" value="'+esc(x.pov||"")+'" placeholder="Book default"><div class="field-hint">Whose eyes this scene is through. Leave empty to use the book default.</div></div>':'')
+   +(x.layer===4?'<div class="bf-lab">Chapter check</div>'+chCheckHtml(x)+'<div class="bf-lab" style="margin-top:14px">Chapter plan</div>'+chDocFields(x):'')
    +(deps.length?'<div class="field-hint" style="margin:0 0 12px">Depends on: '+deps.map(y=>esc(y.title)).join(", ")+'</div>':'')
    +(kids.length?'<div class="field"><label>Scenes</label>'+kids.map(k=>'<div data-do="node" data-id="'+k.id+'" style="padding:10px 0;border-top:1px solid var(--border-soft);cursor:pointer"><b>'+esc(k.title)+'</b><div class="field-hint">'+esc(clip(k.summary,110))+(k.change?" Changes: "+esc(clip(k.change,90)):" No change defined.")+'</div></div>').join("")+'</div>':'')
    +'<div class="btn-row"><button class="btn ghost" data-do="rejectnode" data-id="'+id+'">Reject</button><button class="btn primary" data-do="savenode" data-id="'+id+'" data-approve="'+(pr?1:0)+'">'+(pr?"Approve":"Save")+'</button></div>')}
@@ -1278,6 +1284,7 @@ addEventListener("click",async e=>{
   const a=e.target.closest("[data-ap]");
   if(a){const n=await dbGet("novels",S.novelId);n.planApproach=a.dataset.ap;await save("novels",n);$$("#apSeg button").forEach(b=>b.classList.toggle("active",b===a));const p=$("#apPill");if(p)p.textContent=a.dataset.ap==="ending"?"Ending first":"Discovery";return}
   const pcb=e.target.closest("[data-pc]");if(pcb){const n=await dbGet("novels",S.novelId);n.pacing=pcb.dataset.pc;await save("novels",n);render();return}
+  const bcb=e.target.closest("[data-bc]");if(bcb){const n=await dbGet("novels",S.novelId);n.planBatch=+bcb.dataset.bc;await save("novels",n);render();return}
   const t=e.target.closest("[data-do]");if(!t)return;const d=t.dataset.do,id=t.dataset.id;
   if(d==="planstep")return busyBtn(t,"Drafting...",planStep);
   if(d==="node")return openNode(id);
@@ -1285,11 +1292,13 @@ addEventListener("click",async e=>{
   if(d==="nodeno"||d==="rejectnode")return rejectNode(id);
   if(d==="goplan"){S.tab="plan";history.replaceState(S,"");return render()}
   if(d==="approveall"){const all=await dbBy("plan","novelId",S.novelId);return approveNodes(all.filter(x=>x.layer===+id&&x.status==="proposed").map(x=>x.id),"approve-all")}
+  if(d==="chvalid")return busyBtn(t,"Checking...",()=>chrevalid(id));
+  if(d==="chdismiss"){const x=await dbGet("plan",id);if(!x||!x.check)return;x.check.dismissed=[...new Set([...(x.check.dismissed||[]),t.dataset.key])];x.updatedAt=Date.now();await dbBatch([["plan",x],["decisions",stamp({novelId:S.novelId,targetType:"chapter-check",targetId:id,action:"deliberate",at:Date.now()})]]);toast("Marked as deliberate.");await openNode(id);return render()}
   if(d==="savenode"){
     const tt=$("#pnT").value.trim();if(!tt)return toast("Give it a title first.");
     const all=await dbBy("plan","novelId",S.novelId),x=all.find(y=>y.id===id);if(!x)return;
     const su=$("#pnS").value.trim(),ce=$("#pnC"),cv=ce?ce.value.trim():(x.change||""),ch=tt!==x.title||su!==x.summary||cv!==(x.change||""),pr=x.status==="proposed",rv=x.review,ap=t.dataset.approve==="1",now=Date.now(),ops=[];
-    x.title=tt;x.summary=su;if(ce)x.change=cv;x.review=false;x.updatedAt=now;if(ap)x.status="approved";ops.push(["plan",x]);
+    x.title=tt;x.summary=su;if(ce)x.change=cv;if(x.layer===4&&$("#pd_purpose"))x.doc=readDoc(x);const pve=$("#pnV");if(pve)x.pov=clip(pve.value,60);x.review=false;x.updatedAt=now;if(ap)x.status="approved";ops.push(["plan",x]);
     if(ap)all.filter(y=>y.layer===5&&y.parentId===id&&y.status==="proposed").forEach(y=>{y.status="approved";ops.push(["plan",y])});
     ops.push(["decisions",stamp({novelId:S.novelId,targetType:"plan",targetId:id,action:pr?(ch?"modify":"approve"):(rv?"review":"edit"),at:now})]);
     await dbBatch(ops);await syncStage();await closeSheet();toast(pr?"Approved.":"Saved.");render()}});
@@ -1300,21 +1309,21 @@ const AVOID0=["a testament to","couldn't help but","could not help but","shiver 
 const PSEG={pov:[["first","First person"],["third","Third limited"],["omni","Omniscient"]],tense:[["past","Past"],["present","Present"]],rhythm:[["short","Short"],["mixed","Mixed"],["long","Long"]],dialogue:[["sparse","Sparse"],["balanced","Balanced"],["heavy","Heavy"]],density:[["lean","Lean"],["balanced","Balanced"],["rich","Rich"]],monologue:[["rare","Rare"],["moderate","Moderate"],["frequent","Frequent"]],figurative:[["sparse","Sparse"],["moderate","Moderate"],["rich","Rich"]],register:[["plain","Plain"],["natural","Natural"],["literary","Literary"]]};
 const PLAB={pov:"Point of view",tense:"Tense",rhythm:"Sentence rhythm",dialogue:"Dialogue",density:"Description",monologue:"Inner thoughts",figurative:"Figurative language",register:"Language level"};
 const PDEF={pov:"third",tense:"past",rhythm:"mixed",dialogue:"balanced",density:"balanced",monologue:"moderate",figurative:"moderate",register:"natural"};
-const proseOf=n=>Object.assign({},PDEF,{notes:"",voiceSample:"",voiceGuide:"",avoid:AVOID0.slice()},(n&&n.prose)||{});
+const proseOf=n=>Object.assign({},PDEF,{povMain:"",notes:"",voiceSample:"",voiceGuide:"",avoid:AVOID0.slice()},(n&&n.prose)||{});
 const wc=t=>(String(t||"").trim().match(/\S+/g)||[]).length;
 const segH=(k,cur)=>'<div class="field"><label>'+PLAB[k]+'</label><div class="seg-control" data-pk="'+k+'">'+PSEG[k].map(x=>'<button type="button" data-v="'+x[0]+'"'+(x[0]===cur?' class="active"':'')+'>'+x[1]+'</button>').join("")+'</div></div>';
 async function vProse(){
   const n=await dbGet("novels",S.novelId);if(!n)return vLibrary();
   const p=proseOf(n),g=(h,b)=>'<div class="settings-group"><h4>'+h+'</h4>'+b+'</div>';
   return '<div class="view active settings-view prefs-v2" style="display:flex;flex-direction:column;">'+bar(back,"Prose preferences")+'<div class="section-pad">'
-   +g("Voice",segH("pov",p.pov)+segH("tense",p.tense))
+   +g("Voice",segH("pov",p.pov)+segH("tense",p.tense)+'<div class="field"><label for="prV">Main viewpoint character</label><input type="text" id="prV" value="'+esc(p.povMain)+'" placeholder="Optional, for example Elias"><div class="field-hint">Used for first person and third limited. A single scene can override it in the plan.</div></div>')
    +g("Style",segH("register",p.register)+segH("rhythm",p.rhythm)+segH("dialogue",p.dialogue)+segH("density",p.density)+segH("monologue",p.monologue)+segH("figurative",p.figurative)+'<div class="field"><label for="prN">Anything else about how it should read</label><textarea id="prN" rows="3">'+esc(p.notes)+'</textarea></div>')
    +g("Your voice",'<div class="field-hint" style="margin:0 0 10px">Paste a passage of your own writing. Nemesis studies how you write and turns it into a style guide you can edit.</div><div class="field"><label for="prS">Writing sample</label><textarea id="prS" rows="6" placeholder="Paste at least 300 characters of your own prose">'+esc(p.voiceSample)+'</textarea></div><div class="btn-row"><button class="btn voice-btn" data-do="analyze" style="min-height:44px">'+icon("sparkles",16)+' Analyze my voice</button></div><div class="field" style="margin-top:12px"><label for="prG">Style guide</label><textarea id="prG" rows="8" placeholder="Appears here after analysis. You can also write your own.">'+esc(p.voiceGuide)+'</textarea></div>')
    +g("Avoid-list",'<div class="field-hint" style="margin:0 0 10px">One phrase per line. Every scene is checked against this list by code.</div><div class="field"><textarea id="prA" rows="8">'+esc(p.avoid.join("\n"))+'</textarea></div><div class="btn-row"><button class="btn ghost" data-do="avoiddef" style="min-height:44px">Reset to defaults</button></div>')
    +'<div class="btn-row" style="margin-top:6px"><button class="btn primary" data-do="saveprose" style="min-height:48px">Save prose preferences</button></div></div></div>'}
 function readProse(){
   const p={};$$("[data-pk]").forEach(b=>{const a=b.querySelector(".active");p[b.dataset.pk]=a?a.dataset.v:PDEF[b.dataset.pk]});
-  p.notes=$("#prN").value.trim();p.voiceSample=$("#prS").value.trim();p.voiceGuide=$("#prG").value.trim();
+  p.notes=$("#prN").value.trim();p.povMain=$("#prV")?$("#prV").value.trim().slice(0,60):"";p.voiceSample=$("#prS").value.trim();p.voiceGuide=$("#prG").value.trim();
   p.avoid=[...new Set($("#prA").value.split("\n").map(x=>x.trim()).filter(Boolean))];
   if(p.voiceSample.length>8000){toast("The writing sample is too long. Keep it under 8000 characters.");return null}
   if(p.voiceGuide.length>4000){toast("The style guide is too long. Keep it under 4000 characters.");return null}
@@ -1380,10 +1389,10 @@ const SYS_C="You are the QA editor of a novel production system. Judge strictly 
 function sceneCtx(n,D,s){
   const ch=D.co[s.parentId],c=okd(D.all,1)[0],sib=D.list.filter(x=>x.parentId===s.parentId),dev=(ch.dependsOn||[]).map(i=>D.all.find(y=>y.id===i)).filter(Boolean).map(y=>y.title);
   const prev=D.list.filter(x=>(D.co[x.parentId].order<ch.order||(x.parentId===s.parentId&&x.order<s.order))&&D.byPlan[x.id]&&D.byPlan[x.id].summary).slice(-3).map(x=>"- Chapter "+D.co[x.parentId].order+", scene "+x.order+": "+clip(D.byPlan[x.id].summary,300));
-  return{ch,c,sib,dev,prev,head:"Novel: "+n.title+(c?"\nCentral narrative (for direction only, do not resolve it early):\n"+clip(c.summary,700):"")+"\n\nChapter "+ch.order+": "+ch.title+"\n"+clip(ch.summary,300)+(dev.length?"\nThis chapter advances: "+dev.join("; "):"")+"\nScenes in this chapter:\n"+sib.map(x=>x.order+". "+x.title+": "+clip(x.summary,120)+(x.id===s.id?"  <== this scene":"")).join("\n")+"\n\nThis scene: "+s.title+"\nPurpose: "+clip(s.summary,300)+"\nWhat must change by the end: "+(clip(s.change,200)||"something concrete")+"\nCharacters: "+((s.participants||[]).join(", ")||"as needed")}}
+  return{ch,c,sib,dev,prev,head:"Novel: "+n.title+(c?"\nCentral narrative (for direction only, do not resolve it early):\n"+clip(c.summary,700):"")+"\n\nChapter "+ch.order+": "+ch.title+"\n"+clip(ch.summary,300)+(ch.doc&&docBrief(ch.doc)?"\nChapter plan notes: "+docBrief(ch.doc):"")+(dev.length?"\nThis chapter advances: "+dev.join("; "):"")+"\nScenes in this chapter:\n"+sib.map(x=>x.order+". "+x.title+": "+clip(x.summary,120)+(x.id===s.id?"  <== this scene":"")).join("\n")+"\n\nThis scene: "+s.title+"\nPurpose: "+clip(s.summary,300)+"\nWhat must change by the end: "+(clip(s.change,200)||"something concrete")+"\nCharacters: "+((s.participants||[]).join(", ")||"as needed")}}
 async function bibleFor(n,s){
   const ents=await dbBy("entities","novelId",n.id),nm=(s.participants||[]).map(x=>x.toLowerCase()),out=[];
-  for(const e of ents){if(nm.includes(e.name.toLowerCase())){const f=(await dbBy("facts","entityId",e.id)).filter(x=>x.status!=="superseded").slice(0,3).map(x=>x.text);out.push("- "+e.name+": "+clip(e.summary,200)+(f.length?" Facts: "+f.join("; "):"")+(isChar(e)&&profLive(e)?"\n  Profile: "+profText(e.profile):""))}}
+  for(const e of ents){if(nm.includes(e.name.toLowerCase())){const f=(await dbBy("facts","entityId",e.id)).filter(x=>x.status!=="superseded").slice(0,3).map(x=>x.text);out.push("- "+e.name+": "+clip(e.summary,200)+(f.length?" Facts: "+f.join("; "):"")+(isChar(e)&&profLive(e)?"\n  Profile: "+profFull(e.profile):""))}}
   return out.slice(0,6)}
 /* ---------- M4: repetition guard, knowledge ledger core, checkpoint ---------- */
 const REP=.15; /* share of a scene's 5-word runs already found in earlier scenes before it counts as a repeat. Untuned guess. */
@@ -1437,7 +1446,7 @@ function kbTells(K,text){
   return out}
 const leakKey=l=>l.kind+"|"+l.propId+"|"+(l.who||"")+"|"+clip(l.detail,40);
 const dedupeLeaks=a=>{const s=new Set();return a.filter(l=>{const k=leakKey(l);if(s.has(k))return false;s.add(k);return true})};
-const issuesOf=q=>{q=q||{};const dm=new Set(q.dismissed||[]);return(q.purposeMet===false?1:0)+(q.changeMet===false?1:0)+arr0(q.leaks).filter(l=>!dm.has(leakKey(l))).length+(q.repeat||q.repeatsEarlier?1:0)+arr0(q.continuity).filter(c=>c.kind==="error"&&!dm.has(contKey(c))).length};
+const issuesOf=q=>{q=q||{};const dm=new Set(q.dismissed||[]);return(q.purposeMet===false?1:0)+(q.changeMet===false?1:0)+arr0(q.leaks).filter(l=>!dm.has(leakKey(l))).length+(q.repeat||q.repeatsEarlier?1:0)+arr0(q.continuity).filter(c=>c.kind==="error"&&!dm.has(contKey(c))).length+(q.pov&&q.pov.off&&!dm.has("pov")?1:0)};
 /* knowledge rows follow approved scenes only: rewrite this scene's rows from its current check */
 async function syncKnowledge(rec){
   const all=await dbAll("knowledge"),ops=all.filter(k=>k.sceneId===rec.planId).map(k=>["del","knowledge",k.id]);
@@ -1464,10 +1473,10 @@ async function draftScene(n,D,s,note,X){
   const base="Task: Write the scene.\n"+X.head+(bible.length?"\n\nStory bible:\n"+bible.join("\n"):"")+kbBlock(K)+LB+(X.prev.length?"\n\nWhat has happened just before:\n"+X.prev.join("\n"):"")
    +(same.length?"\n\nAlready covered earlier in this chapter. Do not repeat or retell any of it:\n"+same.map(x=>"- "+clip(D.byPlan[x.id].summary,220)).join("\n"):"")
    +(tail?"\n\nThe previous scene ended with this passage. Continue from where it left off and do not retell it:\n\""+tail+"\"":"")
-   +(done?"\n\nThe earlier scenes of this chapter already hold about "+done+" words. The whole chapter should come to about "+wr[0]+" to "+wr[1]+" words, so this scene carries what is left.":"")+"\n\nLength: about "+sl+" to "+sh+" words. Do not go over the top. Aim for the lower to middle part of the range, and if the scene's change has landed but you are well under the bottom, play the moment out further through action, reaction and dialogue, never description, reflection or filler. Begin inside the scene, with something new: a new action, moment or turn, never a recap of what the reader has just read. Show what happens through action, dialogue and concrete detail. Do not explain the meaning of the scene or end on a reflective summary line; end on a concrete beat. Do not resolve anything beyond what the plan says, and do not add plot threads, characters or facts that are not in the plan or story bible (small incidental details are fine). Characters with a profile in the story bible speak and act from it, shown through behaviour and choices and never by naming traits, and never at the cost of the scene's purpose. Never use these phrases: "+p.avoid.slice(0,60).join("; ")+"."+(has(note)?"\nNote from the author for this version: "+clip(note,400):"");
+   +(done?"\n\nThe earlier scenes of this chapter already hold about "+done+" words. The whole chapter should come to about "+wr[0]+" to "+wr[1]+" words, so this scene carries what is left.":"")+"\n\nLength: about "+sl+" to "+sh+" words. Do not go over the top. Aim for the lower to middle part of the range, and if the scene's change has landed but you are well under the bottom, play the moment out further through action, reaction and dialogue, never description, reflection or filler. Begin inside the scene, with something new: a new action, moment or turn, never a recap of what the reader has just read. Show what happens through action, dialogue and concrete detail. Do not explain the meaning of the scene or end on a reflective summary line; end on a concrete beat. Do not resolve anything beyond what the plan says, and do not add plot threads, characters or facts that are not in the plan or story bible (small incidental details are fine). Characters with a profile in the story bible speak and act from it, shown through behaviour and choices and never by naming traits, and never at the cost of the scene's purpose. Never use these phrases: "+p.avoid.slice(0,60).join("; ")+"."+gestAvoid(priors)+openAvoid(priors)+((s.participants||[]).length>1?VOICE_RULE:"")+povRem(p,vpOf(n,s))+(has(note)?"\nNote from the author for this version: "+clip(note,400):"");
   let text,r,rep={ratio:0},extra="";
   for(let a=0;a<2;a++){
-    r=await generate(base+extra,{system:SYS_W+"\n\n"+proseBlock(p,pacingOf(n)),temperature:.75,timeoutMs:90000});text=r.text.trim();
+    r=await generate(base+extra,{system:SYS_W+"\n\n"+proseBlock(p,pacingOf(n),vpOf(n,s)),temperature:.75,timeoutMs:90000});text=r.text.trim();
     if(wc(text)<30)throw new Error("Gemini reply was cut off before it finished");
     rep=overlapWith(text,priors);if(rep.ratio<REP)break;
     extra="\nImportant: your previous draft repeated material from an earlier scene. Write only what is new, starting after the earlier scene ended."}
@@ -1482,39 +1491,44 @@ async function finishScene(n,D,s,X,dr,note,auto){
   const p=proseOf(n),pace=pacingOf(n),rec0=D.byPlan[s.id],K=await kbContext(n,D,s),pf=await profFor(n,s);
   let text=dr.text,out=await checkScene(n,D,s,X,text,K),rev=false;
   /* one targeted revision, only when the style check says the scene clearly departs from the settings */
-  if(out.qa.style&&out.qa.style.off&&!out.qa.checkFailed){
+  const so=!!(out.qa.style&&out.qa.style.off),po=!!(out.qa.pov&&out.qa.pov.off);
+  if((so||po)&&!out.qa.checkFailed){
     try{
-      const r=await generate("Task: Revise the scene for style.\nThe scene does not clearly follow the author's style settings: "+out.qa.style.what+"\nRewrite it so that it follows them, changing as little else as possible: keep every event and fact, the meaning of each line of dialogue, the order of events, the point of view, the tense and roughly the same length. Return the full scene text only.\n\nScene:\n"+text,{system:SYS_W+"\n\n"+proseBlock(p,pace),temperature:.6,timeoutMs:90000}),nt=r.text.trim();
+      const r=await generate("Task: Revise the scene for style.\nThe scene does not clearly follow the author's settings:\n"+[so&&"Style: "+out.qa.style.what,po&&"Point of view or tense: "+out.qa.pov.what].filter(Boolean).join("\n")+"\nRewrite it so that it follows them, changing as little else as possible: keep every event and fact, the meaning of each line of dialogue, the order of events and roughly the same length"+(po?". Rewrite the narration in "+povCheckText(p,vpOf(n,s))+", as the prose preferences describe, and keep dialogue as it is":"; keep the point of view and the tense")+". Return the full scene text only.\n\nScene:\n"+text,{system:SYS_W+"\n\n"+proseBlock(p,pace,vpOf(n,s)),temperature:.6,timeoutMs:90000}),nt=r.text.trim();
       if(wc(nt)>=wc(text)*.6){const o2=await checkScene(n,D,s,X,nt,K);if(!o2.qa.checkFailed){text=nt;out=o2;rev=true}}
     }catch(e){}}
-  const w=wc(text),now=Date.now(),vid=uid(),sid=rec0?rec0.id:uid(),still=!!(out.qa.style&&out.qa.style.off);
+  const w=wc(text),now=Date.now(),vid=uid(),sid=rec0?rec0.id:uid(),still=!!(out.qa.style&&out.qa.style.off),stillP=!!(out.qa.pov&&out.qa.pov.off);
   const stx=await recordScene(n,D,s,text); /* P1 stage 1: what this scene establishes */
   const appF=stx.ok?await appFindings(n,D,s,stx.ex,text):[];
-  const qa=Object.assign({avoid:checkAvoid(text,p.avoid),words:w,target:dr.W,range:dr.range||null,repeat:dr.rep.ratio>=REP?{pct:Math.round(dr.rep.ratio*100),retried:!!dr.rep.retried}:null},out.qa,{styleFixed:rev&&!still});
+  const qa=Object.assign({avoid:checkAvoid(text,p.avoid),words:w,target:dr.W,range:dr.range||null,repeat:dr.rep.ratio>=REP?{pct:Math.round(dr.rep.ratio*100),retried:!!dr.rep.retried}:null},out.qa,{styleFixed:rev&&so&&!still,povFixed:rev&&po&&!stillP});
   qa.continuity=arr0(out.qa.continuity).concat(appF).slice(0,8);
+  {const pt=await priorTexts(D,s,3);const gn=gestNotes(text,pt),on=openNote(text,pt);qa.gestures=gn;qa.opening=on}
   if(still)qa.style=Object.assign({},out.qa.style,{revised:rev});
+  if(stillP)qa.pov=Object.assign({},out.qa.pov,{revised:rev});
   const rec={id:sid,novelId:n.id,planId:s.id,chapterPlanId:X.ch.id,chOrder:X.ch.order,scOrder:s.order,status:(auto&&!issuesOf(qa)&&!qa.checkFailed&&stx.ok)?"approved":"drafted",currentVersionId:vid,summary:out.summary||clip(text,300),words:w,qa,createdAt:rec0?rec0.createdAt:now,updatedAt:now};
   await dbBatch([["scenes",rec],["scene_versions",{id:vid,sceneId:sid,text,model:dr.model,reason:rec0?"regenerate":"generate",note:clip(note,400),createdAt:now,words:w,qa}],["scene_state",stateRec(n,s,rec,vid,stx)]]);
   await syncKnowledge(rec);await syncLedger(rec);
   try{await applyScenePros(n,out.profiles,pf.need)}catch(e){}
+  try{await applyProfUpdates(n,out.profUpdates,text,rec)}catch(e){}
   await dbDel("jobs_local","wr-"+n.id);return rec}
 async function checkScene(n,D,s,X,text,K){
   if(K===undefined)K=await kbContext(n,D,s);
   const lcb=ledgerCheckBlock(await ledgerCtx(n,D,s));
-  const tells=kbTells(K,text),kb=kbCheckBlock(K),p=proseOf(n),pace=pacingOf(n),pf=await profFor(n,s),disc=(n.planApproach||"ending")==="discovery"&&pf.need.length>0;
+  const tells=kbTells(K,text),kb=kbCheckBlock(K),p=proseOf(n),pace=pacingOf(n),pf=await profFor(n,s),vp=vpOf(n,s),pg=povGuard(text,p),disc=(n.planApproach||"ending")==="discovery"&&pf.need.length>0;
   try{
     const r=await generateJson("Task: Check the scene.\n"+X.head+(X.prev.length?"\n\nEarlier:\n"+X.prev.join("\n"):"")+(kb?"\n\nTracked information (labels P1, P2 and so on):\n"+kb:"")+(pf.lines.length?"\n\nCharacter profiles:\n"+pf.lines.join("\n"):"")+lcb+"\n\nScene text:\n"+clip(text,9000)
-     +'\n\nReturn JSON: {"summary":"2 to 3 sentences of what actually happens","purposeMet":true,"changeMet":true,"repeatsEarlier":false,"issues":["contradictions with the plan or earlier scenes, new plot threads, or characters acting or speaking out of character or out of their profile; at most 4; empty if none"],"style":{"off":false,"what":""},"continuity":[{"kind":"error or mystery or conflict or unverified or possible","detail":"","against":"","evidence":""}]'
+     +'\n\nReturn JSON: {"summary":"2 to 3 sentences of what actually happens","purposeMet":true,"changeMet":true,"repeatsEarlier":false,"issues":["contradictions with the plan or earlier scenes, new plot threads, or characters acting or speaking out of character or out of their profile; at most 4; empty if none"],"style":{"off":false,"what":""},"continuity":[{"kind":"error or mystery or conflict or unverified or possible","detail":"","against":"","evidence":""}],"pov":{"off":false,"what":""}'
      +(kb?',"learned":[{"proposition":"P1","holder":"character name or reader","stance":"knows or believes or suspects","via":"witnessed or overheard or document or confession or deduction or told","believedValue":"what they think, only if it differs from the truth"}],"leaks":[{"proposition":"P2","type":"character or reader","who":"name","detail":"one short sentence"}]':'')
-     +(disc?',"profiles":[{"name":"","voice":"","wants":"","manner":"","ties":""}]':'')
-     +'}\nrepeatsEarlier is true only if this scene mostly retells events the earlier scenes already covered.'+CONT_RULE
+     +(disc?',"profiles":[{"name":"","voice":"","wants":"","manner":"","ties":""}]':'')+(pf.lines.length?',"profileUpdates":[{"name":"","field":"voice or wants or manner or ties or beliefs or needs or flaws or reacts or decides or avoids or habits or history or arc","text":"","evidence":""}]':'')+(pf.lines.length>1?',"voices":{"alike":false,"what":""}':'')
+     +'}\nrepeatsEarlier is true only if this scene mostly retells events the earlier scenes already covered.'+CONT_RULE+" The author chose this point of view and tense: "+povCheckText(p,vp)+"."+POV_RULE
      +" The author chose these style settings: "+styleCheckText(p,pace)+". style.off is true only when the scene CLEARLY departs from them, for example ordinary actions given long description under lean or balanced description, stock atmospheric figures under sparse figurative language, lingering on intermediate steps or description under fast pacing, dialogue that mainly delivers background information or explains what both speakers already know, or characters explaining their own obvious feelings under minimal or moderate inner thoughts, or uncommon or showy vocabulary and hard-to-follow sentences under a plain or natural language level, or long runs of sentences that read as a list of actions. Judge the dominant effect, not single sentences, and ordinary variation is fine. style.what is one short sentence naming the clearest departure, and empty when off is false."
      +(kb?' learned lists tracked facts that a character or the reader newly learns, believes or suspects in this scene. leaks lists tracked facts that a character states or acts on without having held them before this scene or learning them within it, and HIDDEN facts that the narration reveals to the reader early. Do not list deliberate misdirection or anything the scene plan itself calls for. Use empty arrays when there is nothing to list.':'')
+     +(pf.lines.length?" profileUpdates lists only what this scene newly shows about a character that is not already in their profile above, or that contradicts it, with evidence copied exactly from the scene text. Most scenes have none, so return an empty array rather than restating the profile.":"")+(pf.lines.length>1?" voices.alike is true only when two speaking characters use the same vocabulary, directness and rhythm so that their lines could be swapped, and voices.what names them in one sentence.":"")
      +(disc?" profiles: for each of these characters, "+pf.need.join(", ")+", describe only what this scene actually shows (voice: how they speak; wants: what they are after; manner: how they habitually act or react; ties: how they stand with named others). Leave a field empty if the scene does not show it, and never invent.":""),
      {system:SYS_C,tries:1,timeoutMs:60000});
     const d=r.data||{},kk=K?kbFromCheck(K,d):{know:[],leaks:[]};
-    return{summary:has(d.summary)?clip(d.summary,500):"",profiles:arr0(d.profiles),qa:{purposeMet:d.purposeMet!==false,changeMet:d.changeMet!==false,repeatsEarlier:d.repeatsEarlier===true,issues:arr0(d.issues).map(x=>clip(x,200)).filter(has).slice(0,4),style:d.style&&d.style.off===true?{off:true,what:has(d.style.what)?clip(d.style.what,200):"the style settings are not being followed"}:null,know:kk.know,leaks:dedupeLeaks(tells.concat(kk.leaks)),continuity:normCont(d.continuity,text),checkFailed:false}}
-  }catch(e){return{summary:"",profiles:[],qa:{purposeMet:null,changeMet:null,repeatsEarlier:false,issues:[],style:null,know:[],leaks:tells,continuity:[],checkFailed:true}}}}
+    return{summary:has(d.summary)?clip(d.summary,500):"",profiles:arr0(d.profiles),profUpdates:arr0(d.profileUpdates),qa:{purposeMet:d.purposeMet!==false,changeMet:d.changeMet!==false,repeatsEarlier:d.repeatsEarlier===true,issues:arr0(d.issues).map(x=>clip(x,200)).filter(has).slice(0,4),style:d.style&&d.style.off===true?{off:true,what:has(d.style.what)?clip(d.style.what,200):"the style settings are not being followed"}:null,know:kk.know,leaks:dedupeLeaks(tells.concat(kk.leaks)),continuity:normCont(d.continuity,text),pov:povOut(d,pg),voices:d.voices&&d.voices.alike===true&&has(d.voices.what)?{what:clip(d.voices.what,200)}:null,checkFailed:false}}
+  }catch(e){return{summary:"",profiles:[],qa:{purposeMet:null,changeMet:null,repeatsEarlier:false,issues:[],style:null,know:[],leaks:tells,continuity:[],pov:pg?{off:true,what:pg,guard:true}:null,checkFailed:true}}}}
 /* ---------- M4.1: one style specification, word range, character profiles, knowledge coverage ---------- */
 /* Every option is a behavioural definition, never a quota. The "Level" lines calibrate the amount only. */
 const STYLE={
@@ -1552,9 +1566,8 @@ function styleBlock(p,pace){
   const g=(k,v)=>k==="register"?(STYLE_REG[v]||STYLE_REG.natural):((STYLE[k]&&STYLE[k][v])||"");
   return "Author's style settings. They are independent dimensions and none may change another: Fast pacing does not mean lean description, Sparse figurative language does not mean flat emotion, Minimal inner thoughts does not mean no visible feeling, Simple rhythm does not mean repetitive writing. The Level lines only calibrate the amount: never reuse their wording, names or images.\n"
    +[g("register",p.register),g("pace",pace),g("density",p.density),g("figurative",p.figurative),g("monologue",p.monologue),g("dialogue",p.dialogue),g("rhythm",p.rhythm),DIALOGUE_RULE,CLARITY_RULE].filter(Boolean).map(x=>"- "+x).join("\n")}
-function proseBlock(p,pace){
-  const d=k=>(PSEG[k].find(x=>x[0]===p[k])||[0,p[k]])[1];
-  return "Author's prose preferences:\n- Point of view: "+d("pov")+"\n- Tense: "+d("tense")+"\n\n"+styleBlock(p,pace||"balanced")
+function proseBlock(p,pace,vp){
+  return "Author's prose preferences:\n- "+(POVDEF[p.pov]||POVDEF.third)+(vp&&p.pov!=="omni"?"\n- Viewpoint character for this scene: "+vp+".":"")+"\n- "+(TENSEDEF[p.tense]||TENSEDEF.past)+"\n\n"+styleBlock(p,pace||"balanced")
    +"\n\nThe style settings take priority over the voice guide and the voice reference wherever they conflict. Those two govern tone, diction and attitude."
    +(has(p.notes)?"\n\nAuthor's notes: "+clip(p.notes,600):"")
    +(has(p.voiceGuide)?"\n\nVoice guide (tone and diction; where it conflicts with the style settings, the settings win):\n"+clip(p.voiceGuide,2000):"")
@@ -1578,7 +1591,7 @@ const profMissing=(ents,s)=>(s.participants||[]).filter(nm=>{const e=ents.find(x
 async function profFor(n,s){
   const ents=await dbBy("entities","novelId",n.id),lines=[],need=[];
   (s.participants||[]).forEach(nm=>{const e=ents.find(x=>isChar(x)&&sameNm(x.name,nm));
-    if(e&&profLive(e))lines.push("- "+e.name+": "+profText(e.profile));
+    if(e&&profLive(e))lines.push("- "+e.name+": "+profFull(e.profile));
     else if(!ents.some(x=>!isChar(x)&&sameNm(x.name,nm)))need.push(nm)});
   return{lines:lines.slice(0,6),need:need.slice(0,6)}}
 /* discovery: profiles proposed from what a scene actually showed. Existing entries get a proposed profile, new names a proposal. */
@@ -1606,11 +1619,11 @@ async function buildProfiles(){
     if(!todo.length){toast("Every character already has a profile.");return}
     toast("Nemesis is developing profiles. This can take a moment.","info");
     const prompt=(await planCtx(n,all))+"\n\nCharacters that need a profile (use these exact names):\n"+todo.map(x=>"- "+x.name+(has(x.summary)?": "+clip(x.summary,200):"")+(cnt[x.name]?" (in "+cnt[x.name]+" planned scenes, for example: "+(why[x.name]||[]).join(" | ")+")":"")).join("\n")
-     +'\n\nTask: Give each of these characters a profile that makes them a person and not a plot function. voice: how they speak, concrete (register, sentence habits, what they avoid saying), at most 25 words. wants: something they personally want or fear that is their own, not just their role in the plot; for supporting characters, a want that can pull against the lead\'s. manner: one habitual behaviour or reaction that shows in action, not a trait label (for example "goes quiet and starts cleaning something when cornered", not "nervous"). ties: how they stand with the named others, one clause each. Make the characters sound different from one another. Allow one natural imperfection, but no forced quirks and no unneeded backstory. Ground everything in the plan and the story bible, and never invent plot, secrets or facts about the world. Return JSON: {"profiles":[{"name":"","voice":"","wants":"","manner":"","ties":""}]}';
+     +'\n\nTask: Give each of these characters a profile that makes them a person and not a plot function. voice: how they speak, concrete (register, sentence habits, what they avoid saying), at most 25 words. wants: something they personally want or fear that is their own, not just their role in the plot; for supporting characters, a want that can pull against the lead\'s. manner: one habitual behaviour or reaction that shows in action, not a trait label (for example "goes quiet and starts cleaning something when cornered", not "nervous"). ties: how they stand with the named others, one clause each. Make the characters sound different from one another. Allow one natural imperfection, but no forced quirks and no unneeded backstory. Ground everything in the plan and the story bible, and never invent plot, secrets or facts about the world. Also give each a deeper profile in "deep": beliefs (what they hold true and the lines they will not cross), needs (what they say they want against what they actually need), flaws (fears, flaws and one contradiction), reacts (under pressure, in conflict, with intimacy and with authority), decides (how they usually choose), avoids (what they hold back and how they steer away from it), habits (habits that are theirs alone, never stock gestures such as drumming fingers or a tight jaw), history (only what bears on this story), arc (how they could change). Each at most 30 words, grounded in the plan and the bible, never inventing plot. Differences between characters must come from beliefs, needs and history, not from forced quirks. Return JSON: {"profiles":[{"name":"","voice":"","wants":"","manner":"","ties":"","deep":{"beliefs":"","needs":"","flaws":"","reacts":"","decides":"","avoids":"","habits":"","history":"","arc":""}}]}';
     const r=await generateJson(prompt,{system:ARCH}),list=(Array.isArray(r.data)?r.data:r.data&&r.data.profiles)||[],ops=[],props=(await dbBy("proposals","novelId",n.id)).filter(x=>x.status==="pending"||x.status==="rejected");let k=0;
     arr0(list).forEach(x=>{
       if(!x||!has(x.name))return;const t=todo.find(y=>sameNm(y.name,x.name));if(!t)return;
-      const pr={voice:clip(x.voice,200),wants:clip(x.wants,200),manner:clip(x.manner,200),ties:clip(x.ties,200),status:"proposed",from:"plan"};if(!(has(pr.voice)&&has(pr.wants)&&has(pr.manner)))return;
+      const pr={voice:clip(x.voice,200),wants:clip(x.wants,200),manner:clip(x.manner,200),ties:clip(x.ties,200),deep:normDeep(x.deep),status:"proposed",from:"plan"};if(!(has(pr.voice)&&has(pr.wants)&&has(pr.manner)))return;
       const e=ents.find(y=>isChar(y)&&sameNm(y.name,t.name));
       if(e){e.profile=pr;ops.push(["put","entities",stamp(e)]);k++}
       else if(props.find(y=>y.status==="pending"&&sameNm(y.payload.name,t.name))){const pp=props.find(y=>y.status==="pending"&&sameNm(y.payload.name,t.name));if(!profHas(pp.payload.profile)){pp.payload.profile=pr;ops.push(["put","proposals",stamp(pp)]);k++}}
@@ -1638,7 +1651,7 @@ function profFieldsHtml(e,nv){
   const q=e.profile||{},st=q.status==="approved"?["canon","Approved"]:profHas(q)?["voice",q.from==="scene"?"Proposed from the writing":"Proposed"]:["neutral","Not set"],ending=((nv&&nv.planApproach)||"ending")==="ending";
   const f=(id,l,k,ph)=>'<div class="field"><label for="'+id+'">'+l+'</label><textarea id="'+id+'" rows="2" maxlength="200" placeholder="'+ph+'">'+esc(q[k]||"")+'</textarea></div>';
   return '<div class="field" style="margin-bottom:6px"><label>Profile <span class="pill '+st[0]+'" style="margin-left:6px">'+st[1]+'</span></label><div class="field-hint">'+(ending?"Ending first: each character needs an approved profile before their scenes are written.":"Discovery: this fills in as you write. Nemesis proposes it from a character's first scene, and you can edit it any time.")+' Saving approves what you see here.</div></div>'
-   +f("eV","How they speak","voice","Register, sentence habits, what they avoid saying")+f("eW","What they want","wants","Their own want or fear, not just their plot role")+f("eM","How they act and react","manner","A habit that shows in behaviour")+f("eT","Ties","ties","How they stand with the others")}
+   +f("eV","How they speak","voice","Register, sentence habits, what they avoid saying")+f("eW","What they want","wants","Their own want or fear, not just their plot role")+f("eM","How they act and react","manner","A habit that shows in behaviour")+f("eT","Ties","ties","How they stand with the others")+deepFieldsHtml(q)+profUpdHtml(e)}
 function profBar(n,list){
   const ready=list.filter(profReady).length,pend=list.filter(e=>e.profile&&e.profile.status==="proposed"&&profHas(e.profile)).length,ending=(n.planApproach||"ending")==="ending";
   return '<div class="field-hint" style="margin:0 0 10px">'+(ending?"Ending first: each character needs an approved profile before their scenes are written. ":"Discovery: profiles fill in as you write. ")+ready+' of '+list.length+' ready.</div><div class="kb-actions"><button class="btn primary fit" data-do="profdraft">'+icon("sparkles",16)+' Develop profiles</button>'+(pend>0?'<button class="btn ghost fit" data-do="profok">Approve all ('+pend+')</button>':'')+'</div>'}
@@ -1889,6 +1902,9 @@ function qaExtra(q,pid){
     h+='<div class="kb-flag"><div class="field-hint warn" style="margin:0">'+(l.kind==="tell"?"Possible early reveal":l.type==="reader"?"Possible early reveal to the reader":"A character may be acting on something they never learned")+': '+esc(l.propText)+(l.who?" ("+esc(l.who)+")":"")+(l.detail?". "+esc(l.detail):"")+'</div><button class="btn ghost fit" data-do="scdismiss" data-id="'+pid+'" data-key="'+esc(leakKey(l))+'">Mark as deliberate</button></div>'});
   if(q.style&&q.style.off)h+='<div class="field-hint warn" style="margin:0 0 8px">Style drift: '+esc(q.style.what)+'.'+(q.style.revised?" Nemesis revised the scene once and it still drifts.":"")+' Regenerate with a note, or edit it.</div>';
   else if(q.styleFixed)h+='<div class="field-hint" style="margin:0 0 8px">Nemesis revised this scene once to match your style settings.</div>';
+  if(q.pov&&q.pov.off&&!dm.has("pov"))h+='<div class="kb-flag"><div class="field-hint warn" style="margin:0">Point of view or tense: '+esc(q.pov.what)+'.'+(q.pov.revised?" Nemesis rewrote the scene once and it still drifts.":"")+' Regenerate with a note, or edit it.</div><button class="btn ghost fit" data-do="scdismiss" data-id="'+pid+'" data-key="pov">Mark as deliberate</button></div>';
+  else if(q.povFixed)h+='<div class="field-hint" style="margin:0 0 8px">Nemesis rewrote this scene once to fix its point of view or tense.</div>';
+  h+=p4Notes(q);
   const k=arr0(q.know);
   if(k.length)h+='<div class="field-hint" style="margin:0 0 8px">Learned here: '+k.map(x=>esc(x.holderName)+" "+x.stance+" "+esc(x.propText||"")).join("; ")+'. Recorded in the Ledger when you approve the scene.</div>';
   h+=contHtml(q,pid);
@@ -2225,6 +2241,220 @@ addEventListener("click",async e=>{
   toast("Added "+name+" to the story bible as a "+(k==="places"?"place":"character")+".");
   if(t.dataset.sc){render();return openScene(t.dataset.sc)}
   render();return openState()});
+
+/* ---------- P2b: point of view and tense compliance ---------- */
+/* Each option is an operational definition, so the Writer and the check judge the same thing. */
+const POVDEF={
+ first:"Point of view: FIRST PERSON. The narrator is the viewpoint character and tells the story as I (we only if the narrator belongs to a group). Every line of narration is in that voice, with I, me and my, and the narrator is never called he, she or by name in the narration. The narrator knows only what they see, hear, think, feel and are told: no other character's thoughts and no scenes they are absent from. The plan, the summaries and any earlier chapters you are given are third-person notes for reference only. Never copy their person or tone.",
+ third:"Point of view: THIRD PERSON LIMITED. The narration calls the viewpoint character he, she or by name and never I. Stay inside that one character for the whole scene: the narration gives only what they perceive, think and feel, and every other character is shown from outside, through speech and action. Never enter another character's thoughts.",
+ omni:"Point of view: THIRD PERSON OMNISCIENT. The narrator stands above the story and calls everyone he, she, they or by name, never I. The narrator may show more than one character's thoughts, but moves between them deliberately and clearly, never inside one sentence."};
+const TENSEDEF={
+ past:"Tense: PAST. The narration is in the past tense (he opened the door). Dialogue and quoted thoughts may use any tense.",
+ present:"Tense: PRESENT. The narration is in the present tense (he opens the door). Earlier events may be recalled in the past tense where needed. Dialogue may use any tense."};
+const POVSHORT={first:"first person",third:"third person limited",omni:"third person omniscient"};
+/* whose eyes: the scene's own override, else the book's main viewpoint character, else the first character in the scene */
+const vpOf=(n,s)=>{const p=proseOf(n);if(p.pov==="omni")return"";return clip(s&&s.pov,60)||clip(p.povMain,60)||clip(((s&&s.participants)||[])[0],60)};
+const povRem=(p,vp)=>"\n\nThe narration of this scene is in the "+POVSHORT[p.pov||"third"]+", "+(p.tense==="present"?"present":"past")+" tense"+(vp&&p.pov!=="omni"?", through "+vp:"")+". The plan and summaries above are notes in the third person and are not a model for the prose.";
+const povCheckText=(p,vp)=>POVSHORT[p.pov||"third"]+", "+(p.tense==="present"?"present":"past")+" tense"+(vp&&p.pov!=="omni"?", viewpoint character "+vp:"");
+const POV_RULE=" pov.off is true only when the narration CLEARLY departs from the chosen person, tense or viewpoint character: narration in the wrong person (for example the narrator called he or she when first person was chosen, or I in a third person scene), narration that is mostly in the wrong tense, narration that enters the thoughts of a character other than the viewpoint character under third person limited, or a switch of viewpoint that is not marked. Dialogue and quoted thoughts never count. pov.what is one short sentence naming the departure, and empty when off is false.";
+/* Code guard: counts first-person pronouns in the narration only (dialogue stripped). It is deliberately loose, it only catches an obvious wrong person. It cannot judge tense or whose head we are in, so the check handles those. */
+const narrOnly=t=>String(t||"").replace(/"[^"]*"|“[^”]*”/g," ");
+function povGuard(text,p){
+  if(!p||p.pov==="omni")return null;
+  const nt=narrOnly(text),w=wc(nt);if(w<150)return null;
+  const fp=(nt.match(/\b(?:I|me|my|mine|myself|I['’](?:m|d|ll|ve))\b/g)||[]).length,rate=fp*100/w;
+  if(p.pov==="first"&&rate<.4)return"the narration is not in the first person (almost no I, me or my outside dialogue)";
+  if(p.pov==="third"&&rate>1.5)return"the narration slips into the first person (I, me or my outside dialogue)";
+  return null}
+
+/* ---------- P3: one chapter at a time ---------- */
+const BATCHES=[1,3,5,10];
+const batchOf=n=>BATCHES.includes(n&&n.planBatch)?n.planBatch:1;
+const DOCL=[["purpose","Purpose","t"],["opening","Opens with","t"],["ending","Ends with","t"],["timeline","When it happens","t"],["events","Key events","l"],["revelations","Revelations","l"],["threads","Threads opened or advanced","l"],["questions","Questions left open","l"],["dependencies","Relies on","l"]];
+function normDoc(d){
+  if(!d||typeof d!=="object")return null;
+  const t=(v,m)=>clip(v,m),l=(v,m,k)=>arr0(v).map(x=>t(x,m)).filter(has).slice(0,k);
+  return{purpose:t(d.purpose,300),opening:t(d.opening,300),ending:t(d.ending,300),timeline:t(d.timeline,160),events:l(d.events,200,8),revelations:l(d.revelations,200,6),threads:l(d.threads,160,6),questions:l(d.questions,160,6),dependencies:l(d.dependencies,120,6),
+   objectives:arr0(d.objectives).map(o=>o&&{character:t(o.character,40),wants:t(o.wants,160),development:t(o.development,160)}).filter(o=>o&&has(o.character)&&has(o.wants)).slice(0,6)}}
+const docBrief=d=>d?[has(d.opening)&&"opens with: "+clip(d.opening,140),has(d.ending)&&"ends with: "+clip(d.ending,140),d.revelations&&d.revelations.length&&"reveals: "+d.revelations.slice(0,3).map(x=>clip(x,80)).join("; ")].filter(Boolean).join(" | "):"";
+const docFull=d=>d?[has(d.purpose)&&"  Purpose: "+d.purpose,d.events&&d.events.length&&"  Events: "+d.events.join("; "),d.objectives&&d.objectives.length&&"  Wants: "+d.objectives.map(o=>o.character+" wants "+o.wants).join("; "),d.revelations&&d.revelations.length&&"  Revealed: "+d.revelations.join("; "),d.questions&&d.questions.length&&"  Left open: "+d.questions.join("; "),has(d.ending)&&"  Ended with: "+d.ending].filter(Boolean).join("\n"):"";
+/* what the chapters before chapter k look like, in order */
+const beforeChapter=(all,k)=>act(all).filter(x=>x.layer===4&&(x.order||0)<k).sort((a,b)=>a.order-b.order);
+async function planStanding(n){
+  const rows=(await dbBy("ledger","novelId",n.id)).filter(r=>r.kind!=="person"&&r.status!=="unverified"&&r.review!=="dismissed").sort((a,b)=>a.storyOrder-b.storyOrder);
+  if(!rows.length)return"";
+  const m=new Map();rows.filter(r=>r.kind==="place"||r.kind==="object").forEach(r=>m.set(nrm(r.subject),r));
+  const st=[...m.values()].slice(-10).map(r=>"- "+r.subject+": "+r.text),cl=rows.filter(r=>r.kind==="claim").slice(-4).map(r=>"- "+r.subject+" (claimed): "+r.text),tm=rows.filter(r=>r.kind==="time").slice(-4).map(r=>"- "+r.text);
+  return"\n\nRecorded from the written scenes so far:"+(st.length?"\nWhere things stand:\n"+st.join("\n"):"")+(cl.length?"\nClaims made (not facts):\n"+cl.join("\n"):"")+(tm.length?"\nTime references:\n"+tm.join("\n"):"")}
+/* the single chapter prompt. The previous chapter's ending is spelled out so the opening has to follow from it. */
+function chapterPrompt(ctx,all,n,k,brief){
+  const dv=okd(all,3).length,sr=sceneRange(n),x=CPD[pacingOf(n)],prev=beforeChapter(all,k).filter(c=>c.status==="approved"||c.status==="developing").slice(-1)[0];
+  const pe=prev?"\n\nThe previous chapter, chapter "+prev.order+", ended with: "+(prev.doc&&has(prev.doc.ending)?prev.doc.ending:clip(prev.summary,300))+" Chapter "+k+" must open from that state: same people, places, time and what they know.":"";
+  return ctx+pe+"\n\nTask: Plan chapter "+k+" only. Do not plan any other chapter. It will be about "+cw(n)+" words, so give it "+sr[0]+" to "+sr[1]+" scenes. It is advanced by one or two listed developments (\"develops\"), using the D labels exactly as listed, for example \"D3\", and each development should last about "+x+" chapters. Do not conclude the novel unless this chapter reaches the planned ending. Within the chapter every scene must cover a different moment or event. The purpose of a scene should come from what a character wants, fears or is trying to do, and any information the reader needs should arrive as a result of that, not as the purpose itself: avoid purposes such as X explains Y to Z. Give each supporting character in a scene an aim of their own. Plan characters from their profiles in the story bible. Return JSON: {\"chapter\":{\"title\":\"\",\"summary\":\"objective and progression in 2 sentences\",\"develops\":[\"D labels this chapter advances\"],\"purpose\":\"what the chapter must achieve\",\"opening\":\"how it opens, consistent with how the previous chapter ended\",\"ending\":\"the state of things when it ends: who is where, what changed, what is unresolved\",\"events\":[\"key events in order\"],\"objectives\":[{\"character\":\"\",\"wants\":\"\",\"development\":\"how they change or what they learn\"}],\"revelations\":[\"what the reader or a character learns here\"],\"threads\":[\"story threads opened or advanced\"],\"questions\":[\"questions left open at the end\"],\"timeline\":\"when it happens relative to the previous chapter\",\"dependencies\":[\"earlier events or facts it relies on\"],\"scenes\":[{\"title\":\"\",\"purpose\":\"what the scene must achieve\",\"change\":\"what is different by the end of the scene\",\"participants\":[\"character names\"]}]}}"
+   +(brief?" Keep every field to one short sentence or a few words, and list at most 4 items per list. The chapter must list at least one development label in \"develops\".":"")}
+/* validation: code rules first, then one AI call. An error needs something real to point at, otherwise it is only a possible problem. */
+const quoteIn=(q,ctx)=>{const a=nrm(String(q||"")).replace(/\s+/g," ").trim().slice(0,60),b=nrm(ctx).replace(/\s+/g," ");return a.length>=8&&b.includes(a)};
+const chKey=f=>"ch|"+f.kind+"|"+clip(f.detail,40);
+function chapterCodeChecks(ch,kids,prev,ents){
+  const f=[],d=ch.doc,add=(kind,detail,against)=>f.push({kind,detail,against:against||"",src:"code"});
+  if(!d||!has(d.purpose))add("error","The chapter has no stated purpose.");
+  if(!d||!has(d.opening))add("error","The chapter does not say how it opens.");
+  if(!d||!has(d.ending))add("error","The chapter does not say how it ends, so the next chapter has nothing to follow from.");
+  if(d&&!(d.events||[]).length)add("possible","No key events are listed.");
+  const seen=new Set();
+  kids.forEach(s=>{(s.participants||[]).forEach(nm=>{const k=String(nm).trim().toLowerCase();if(seen.has(k))return;seen.add(k);if(!ents.some(e=>sameNm(e.name,nm)))add("possible",nm+" appears in a scene but is not in the story bible. The cast can grow, so add them when you are happy with it.")});
+    if(!has(s.change))add("possible","Scene "+s.order+", \""+clip(s.title,40)+"\", does not define what changes.")});
+  prev.forEach(c=>{if(simText(ch.summary,c.summary)>=SIMK)add("error","The summary repeats chapter "+c.order+" almost word for word.","Chapter "+c.order+": "+clip(c.summary,160))});
+  return f}
+async function validateChapter(n,ch,kids,prev,ents,all){
+  const code=chapterCodeChecks(ch,kids,prev,ents),at=Date.now(),pv=prev.slice(-3).map(c=>"Chapter "+c.order+": "+clip(c.summary,200)+(c.doc?"\n"+docFull(c.doc):"")).join("\n"),
+   me="Chapter "+ch.order+": "+ch.title+"\n"+ch.summary+(ch.doc?"\n"+docFull(ch.doc):"")+"\nScenes:\n"+kids.map(s=>s.order+". "+s.title+": "+clip(s.summary,160)+" Changes: "+clip(s.change,100)).join("\n"),
+   ctx=pv+"\n"+me;
+  try{
+    const r=await generateJson("Task: Validate the chapter plan.\nEarlier chapters:\n"+(pv||"(none yet)")+"\n\nThe chapter to check:\n"+me
+     +'\n\nReturn JSON: {"findings":[{"kind":"error or possible or mystery","detail":"one sentence","against":"the earlier line this conflicts with, quoted from the earlier chapters above"}]}. Look for: an opening that does not follow from how the previous chapter ended (people, places, time, what they know); a character knowing or doing something they could not yet; the same event planned twice; a question or revelation resolved too early or contradicting an earlier one; a scene that changes nothing. kind is error only when the chapter plan contradicts something in the earlier chapters and you can quote that line in against. A deliberate mystery or a character hiding something is never an error. Use an empty array when there is nothing to report. At most 5.',{system:SYS_C,tries:1,timeoutMs:60000});
+    const ai=arr0(r.data&&r.data.findings).map(x=>{const k=x&&["error","possible","mystery"].includes(x.kind)?x.kind:"possible",ok=has(x&&x.against)&&quoteIn(x.against,pv);return{kind:k==="error"&&!ok?"possible":k,detail:clip(x&&x.detail,240),against:ok?clip(x.against,200):"",src:"ai"}}).filter(f=>has(f.detail)).slice(0,5);
+    return{at,failed:false,findings:code.concat(ai),dismissed:[]}
+  }catch(e){return{at,failed:true,findings:code,dismissed:[]}}}
+const chProblems=ch=>{const c=ch&&ch.check;if(!c)return 0;const dm=new Set(c.dismissed||[]);return(c.findings||[]).filter(f=>f.kind==="error"&&!dm.has(chKey(f))).length};
+const chOpen=ch=>{const c=ch&&ch.check;if(!c)return 0;const dm=new Set(c.dismissed||[]);return(c.findings||[]).filter(f=>!dm.has(chKey(f))).length};
+function chCheckHtml(ch){
+  const c=ch.check;if(!c)return'<div class="field-hint warn" style="margin:0 0 12px">This chapter has not been validated yet.</div><div class="btn-row"><button class="btn ghost" data-do="chvalid" data-id="'+ch.id+'">Validate chapter</button></div>';
+  const dm=new Set(c.dismissed||[]),LBL={error:"Problem",possible:"Possible problem",mystery:"Looks like a mystery"};
+  let h=c.failed?'<div class="field-hint warn" style="margin:0 0 8px">The AI part of the check did not finish, so only the built-in checks ran.</div>':"";
+  const open=(c.findings||[]).filter(f=>!dm.has(chKey(f)));
+  h+=open.length?open.map(f=>'<div class="kb-flag"><div class="field-hint '+(f.kind==="error"?"warn":"")+'" style="margin:0"><b>'+LBL[f.kind]+':</b> '+esc(f.detail)+(f.against?' Against: '+esc(f.against):'')+'</div><button class="btn ghost fit" data-do="chdismiss" data-id="'+ch.id+'" data-key="'+esc(chKey(f))+'">Mark as deliberate</button></div>').join(""):(c.failed?"":'<div class="field-hint" style="margin:0 0 8px">Checked. Nothing to flag.</div>');
+  return h+'<div class="btn-row"><button class="btn ghost" data-do="chvalid" data-id="'+ch.id+'">Validate again</button></div>'}
+function chDocFields(x){
+  const d=x.doc||{};
+  return DOCL.map(r=>'<div class="field"><label for="pd_'+r[0]+'">'+r[1]+'</label><textarea id="pd_'+r[0]+'" rows="'+(r[2]==="l"?3:2)+'">'+esc(r[2]==="l"?arr0(d[r[0]]).join("\n"):(d[r[0]]||""))+'</textarea>'+(r[2]==="l"?'<div class="field-hint">One per line.</div>':'')+'</div>').join("")
+   +(arr0(d.objectives).length?'<div class="field"><label>What the characters want</label>'+d.objectives.map(o=>'<div class="field-hint" style="margin:0 0 6px"><b>'+esc(o.character)+'</b> wants '+esc(o.wants)+(has(o.development)?". "+esc(o.development):"")+'</div>').join("")+'</div>':'')}
+function readDoc(x){
+  const d=Object.assign({},x.doc||{});
+  DOCL.forEach(r=>{const e=$("#pd_"+r[0]);if(!e)return;const v=e.value;d[r[0]]=r[2]==="l"?v.split("\n").map(s=>clip(s,200)).filter(has).slice(0,8):clip(v,300)});
+  return normDoc(d)}
+/* plan one chapter, validate it, save it. Returns {ch,status} or throws. */
+async function planOneChapter(n,all,sys,brief){
+  const k=nextOrder(all),ctx=await planCtx(n,all),cnt0=act(all).filter(x=>x.layer===4).length;
+  const r=await generateJson(chapterPrompt(ctx,all,n,k,brief),{system:sys,tries:brief?2:1});
+  const d=r.data;if(d&&!d.chapter&&Array.isArray(d.chapters)&&d.chapters.length)d.chapter=d.chapters[0]; /* tolerate a list, keep the first */
+  const built=parsePlan(4,{chapters:[d&&d.chapter]},n,all,1);
+  const again=await dbBy("plan","novelId",n.id);
+  if(act(again).filter(x=>x.layer===4).length!==cnt0)throw new Error("The plan changed while drafting. Nothing was added.");
+  const ch=built.find(x=>x.layer===4),kids=built.filter(x=>x.layer===5),ents=await dbBy("entities","novelId",n.id);
+  ch.check=await validateChapter(n,ch,kids,beforeChapter(all,k),ents,all);
+  const tier=n.autonomy||"guided",auto=!needsOk(4,tier)&&!ch.check.failed&&!chProblems(ch),now=Date.now();
+  built.forEach(x=>{x.status=auto?"approved":"proposed";x.prov={origin:"ai",model:r.model,at:now,auto};stamp(x)});
+  const ops=built.map(x=>["plan",x]);
+  if(auto)ops.push(["decisions",stamp({novelId:n.id,targetType:"plan-step",targetId:"4",action:"auto-approve",note:tier+": chapter "+ch.order,at:now})]);
+  await dbBatch(ops);
+  return{ch,auto,model:r.model}}
+/* one run: batch size chapters, one after another, each planned from the saved ones before it */
+async function planChapters(n,all0,st){
+  const cnt=batchOf(n),sys=ARCH+"\n"+APPROACH[n.planApproach||"ending"]+"\n"+PACE_TXT[pacingOf(n)]+"\n"+GUARD;
+  let all=all0,made=[],stop="",hold=false;
+  for(let i=0;i<cnt;i++){
+    toast(cnt>1?"Planning chapter "+nextOrder(all)+" ("+(i+1)+" of "+cnt+")...":"Planning chapter "+nextOrder(all)+"...","info");
+    let res;
+    try{
+      try{res=await planOneChapter(n,all,sys,false)}
+      catch(e1){if(!/cut off|as JSON|none named|no usable/i.test(String((e1&&e1.message)||"")))throw e1;toast("Gemini's reply did not work. Trying a shorter version.","info");res=await planOneChapter(n,all,sys,true)}
+    }catch(e){stop="Chapter "+nextOrder(all)+" did not work: "+humanize(e);break}
+    made.push(res);all=await dbBy("plan","novelId",n.id);
+    if(!res.auto){hold=true;break}}
+  const last=made[made.length-1];
+  if(stop)toast((made.length?"Planned "+made.length+" "+(made.length===1?"chapter":"chapters")+" and saved "+(made.length===1?"it":"them")+". ":"")+stop,"error");
+  else if(!made.length)toast("Nothing was planned.");
+  else if(hold)toast("Planned chapter "+last.ch.order+". "+(chProblems(last.ch)||last.ch.check.failed?"It has something to look at, so Nemesis stopped there.":"It needs your review before the next one."));
+  else toast("Planned "+made.length+(made.length===1?" chapter":" chapters")+", auto-approved in "+TIERS[n.autonomy||"guided"][0]+".")}
+async function chrevalid(id){
+  const all=await dbBy("plan","novelId",S.novelId),ch=all.find(y=>y.id===id);if(!ch)return;
+  const n=await dbGet("novels",S.novelId),kids=act(all).filter(y=>y.layer===5&&y.parentId===id).sort((a,b)=>a.order-b.order),ents=await dbBy("entities","novelId",n.id),prev=beforeChapter(all,ch.order);
+  const old=ch.check;ch.check=await validateChapter(n,ch,kids,prev,ents,all);
+  if(old&&old.dismissed)ch.check.dismissed=old.dismissed.filter(k=>ch.check.findings.some(f=>chKey(f)===k));
+  ch.updatedAt=Date.now();await dbPut("plan",ch);toast("Checked.");await openNode(id);render()}
+const povOut=(d,pg)=>d&&d.pov&&d.pov.off===true?{off:true,what:has(d.pov.what)?clip(d.pov.what,200):"the point of view or tense is not being followed"}:pg?{off:true,what:pg,guard:true}:null;
+const chPill=x=>x.layer!==4?"":!x.check?'<span class="pill neutral">Not validated</span>':chProblems(x)?'<span class="pill" style="background:var(--alert-soft);color:var(--alert-deep)">'+chProblems(x)+(chProblems(x)===1?" problem":" problems")+'</span>':chOpen(x)?'<span class="pill neutral">'+chOpen(x)+(chOpen(x)===1?" note":" notes")+'</span>':'';
+
+/* ---------- P4: character intelligence and generation quality ---------- */
+/* The four short fields stay the required baseline. The deep fields are optional and never block writing. */
+const DEEP=[["beliefs","Beliefs and values","What they hold to be true and the lines they will not cross"],["needs","Inner need and outer goal","What they say they want, and what they actually need"],["flaws","Fears, flaws and contradictions","Include where they act against their own values"],["reacts","Under pressure","How they handle conflict, intimacy, uncertainty, failure and authority"],["decides","How they decide","Temperament and the way they usually choose"],["avoids","What they hold back","What they tend not to say or show, and how they steer away from it"],["habits","Their own habits","Habits that are theirs alone, not stock gestures"],["history","History that matters","Only what bears on this story"],["arc","Where they are headed","How they could change over the story"]];
+const normDeep=d=>{const o={};DEEP.forEach(r=>{const v=clip(d&&d[r[0]],240);if(has(v))o[r[0]]=v});return o};
+const deepHas=q=>!!q&&!!q.deep&&DEEP.some(r=>has(q.deep[r[0]]));
+const profFull=(q,max)=>{let t=profText(q);if(deepHas(q)){const d=DEEP.filter(r=>has(q.deep[r[0]])).map(r=>r[1]+": "+q.deep[r[0]]).join(". ");t+=(t?". ":"")+d}return max?clip(t,max):t};
+const PFK=[["voice","How they speak"],["wants","What they want"],["manner","How they act and react"],["ties","Ties"]].concat(DEEP.map(r=>[r[0],r[1]]));
+const profVal=(q,k)=>(q&&(["voice","wants","manner","ties"].includes(k)?q[k]:(q.deep||{})[k]))||"";
+function deepFieldsHtml(q){
+  return '<div class="field" style="margin:14px 0 6px"><label>Deeper profile (optional)</label><div class="field-hint">Beliefs, needs, flaws and how they act under pressure. Both the planner and the Writer read this. It never blocks writing.</div></div>'
+   +DEEP.map(r=>'<div class="field"><label for="eD_'+r[0]+'">'+r[1]+'</label><textarea id="eD_'+r[0]+'" rows="2" maxlength="240" placeholder="'+r[2]+'">'+esc((q.deep||{})[r[0]]||"")+'</textarea></div>').join("")}
+const readDeep=()=>{const d={};DEEP.forEach(r=>{const e=$("#eD_"+r[0]);if(e){const v=clip(e.value,240);if(has(v))d[r[0]]=v}});return d};
+/* proposed changes from the writing. Nothing is applied until the director says so. */
+function profUpdHtml(e){
+  const up=arr0(e.profile&&e.profile.updates).filter(u=>u.status==="proposed");if(!up.length)return"";
+  return '<div class="field" style="margin:14px 0 6px"><label>Changes the writing suggests</label><div class="field-hint">Scenes showed something new or different about this character. Nothing changes until you apply it.</div></div>'
+   +up.map(u=>{const k=PFK.find(r=>r[0]===u.field),old=profVal(e.profile,u.field);return '<div class="kb-flag"><div class="field-hint" style="margin:0"><b>'+esc(k?k[1]:u.field)+'</b> (chapter '+u.chapter+', scene '+u.scene+')<br>Now: '+(has(old)?esc(old):"empty")+'<br>Suggested: '+esc(u.text)+'<br>From the scene: "'+esc(u.evidence)+'"</div><div class="btn-row" style="margin-top:6px"><button class="btn ghost fit" data-pu="no" data-eid="'+e.id+'" data-uid="'+u.id+'">Dismiss</button><button class="btn primary fit" data-pu="apply" data-eid="'+e.id+'" data-uid="'+u.id+'">Apply</button></div></div>'}).join("")}
+async function applyProfUpdates(n,list,text,rec){
+  const ents=await dbBy("entities","novelId",n.id),tn=nrm(text),touched=new Map(),now=Date.now();
+  for(const x of arr0(list).slice(0,6)){
+    if(!x||!has(x.name)||!has(x.text))continue;
+    const e0=ents.find(y=>isChar(y)&&sameNm(y.name,x.name));if(!e0||!profLive(e0))continue;
+    const e=touched.get(e0.id)||e0,k=PFK.find(r=>r[0]===x.field);if(!k)continue;
+    if(!(has(x.evidence)&&evOk(x.evidence,tn)))continue;
+    const cur=e.profile||{},upd=arr0(cur.updates),prev=profVal(cur,k[0]);
+    if(has(prev)&&simText(prev,x.text)>=SIMK)continue;
+    if(upd.some(u=>u.status==="proposed"&&u.field===k[0]&&simText(u.text,x.text)>=SIMK))continue;
+    if(upd.filter(u=>u.status==="proposed").length>=8)continue;
+    e.profile=Object.assign({},cur,{updates:upd.concat([{id:uid(),field:k[0],text:clip(x.text,240),evidence:clip(x.evidence,200),sceneId:rec.planId,chapter:rec.chOrder,scene:rec.scOrder,at:now,status:"proposed"}])});
+    touched.set(e.id,e)}
+  if(touched.size)await dbTx([...touched.values()].map(e=>["put","entities",stamp(e)]))}
+addEventListener("click",async ev=>{
+  const t=ev.target.closest("[data-pu]");if(!t)return;
+  const e=await dbGet("entities",t.dataset.eid);if(!e||!e.profile)return;
+  const u=arr0(e.profile.updates).find(x=>x.id===t.dataset.uid);if(!u)return;
+  const apply=t.dataset.pu==="apply",old=profVal(e.profile,u.field),core=["voice","wants","manner","ties"].includes(u.field);
+  const p=Object.assign({},e.profile,{updates:arr0(e.profile.updates).filter(x=>x.id!==u.id)});
+  if(apply){if(core)p[u.field]=clip(u.text,200);else p.deep=Object.assign({},p.deep,{[u.field]:clip(u.text,240)})}
+  e.profile=p;
+  await dbBatch([["entities",stamp(e)],["decisions",stamp({novelId:e.novelId,targetType:"profile-update",targetId:e.id,action:apply?"apply":"dismiss",note:u.field+": "+clip(old,100),at:Date.now()})]]);
+  toast(apply?"Applied.":"Dismissed.");await render();openEnt(e.id)});
+
+/* stock gestures: counted by code, never blocking. */
+const GEST=[["drum","drumming fingers",/\b(?:drum|drummed|drumming|drums)\b[^.!?]{0,30}?\b(?:fingers?|table|desk|armrest|surface)\b|\bfingers?\b[^.!?]{0,20}?\b(?:drummed|drumming|tapped)\b/],
+ ["grip","tightening hands or fingers",/\b(?:hands?|fingers?|knuckles?|grip)\b[^.!?]{0,25}?\b(?:tighten|clench|whiten)\w*|\b(?:clenched|tightened) (?:his|her|their) (?:fists?|hands?|fingers?)\b/],
+ ["jaw","jaw tightening",/\bjaw\b[^.!?]{0,25}?\b(?:tighten|clench|set|tensed|rigid|hardened)\w*|\b(?:tightened|clenched|set) (?:his|her|their) jaw\b/],
+ ["arms","crossed arms",/\b(?:crossed|folded) (?:his|her|their) arms\b|\barms (?:crossed|folded)\b/],
+ ["voice","a flat or measured voice",/\b(?:his|her|their) (?:flat|measured|even|level|neutral|steady) (?:voice|tone)\b|\b(?:in|with) a (?:flat|measured|even|level|neutral) (?:voice|tone)\b|\bvoice (?:was|came|stayed|remained) (?:flat|measured|even|level)\b/],
+ ["breath","a held or released breath",/\b(?:let out|released|exhaled|drew|took) a (?:slow |long |deep |shaky |steadying )?breath\b|\bheld (?:his|her|their) breath\b|\ba breath (?:he|she|they) (?:didn't|hadn't|had not)\b/],
+ ["swallow","swallowing hard",/\bswallowed (?:hard|thickly)\b|\bthroat (?:tightened|constricted)\b/],
+ ["eyes","narrowing or flickering eyes",/\beyes (?:narrowed|flickered|widened)\b|\b(?:narrowed|flickered) (?:his|her|their) eyes\b/],
+ ["smile","a smile that does not reach the eyes",/\bsmile that (?:didn't|did not) reach\b|\b(?:faint|small|thin) smile (?:touched|tugged|played)\b/]];
+const gestCount=t=>{const o={};GEST.forEach(g=>{const m=String(t||"").match(new RegExp(g[2].source,"gi"));if(m)o[g[0]]=m.length});return o};
+const gestPast=priors=>{const past={};priors.forEach(p=>{const c=gestCount(p);Object.keys(c).forEach(k=>{past[k]=(past[k]||0)+c[k]})});return past};
+function gestNotes(text,priors){const here=gestCount(text),past=gestPast(priors);return GEST.filter(g=>(here[g[0]]||0)>=2||((here[g[0]]||0)>=1&&(past[g[0]]||0)>=2)).map(g=>({k:g[0],label:g[1],here:here[g[0]]||0,before:past[g[0]]||0}))}
+function gestAvoid(priors){
+  const past=gestPast(priors),l=GEST.filter(g=>past[g[0]]).map(g=>g[1]+" ("+past[g[0]]+")");
+  return l.length?"\n\nThese gestures were already used in the last few scenes: "+l.join(", ")+". Do not use them again. Show a feeling another way: through the rhythm of what is said, hesitation or silence, avoiding a subject, a choice that surprises, or a habit that belongs to this character alone. Do not swap in another stock gesture.":""}
+/* how scenes open */
+const openKind=t=>{const s=String(t||"").trim().replace(/^[\s*_#>]+/,"");
+  if(/^["“]/.test(s))return"dialogue";
+  if(/^(?:the )?(?:morning|evening|night|rain|sun|sunlight|light|dawn|dusk|wind|snow|fog|silence|air|sky|storm|dark|darkness|clouds?)\b/i.test(s)||/^(?:outside|inside|beyond|above|below)\b/i.test(s)||/^it was (?:a |the )?(?:early|late|morning|evening|night|day|raining|cold|warm|quiet|still)/i.test(s))return"setting";
+  if(/^[A-Z][a-z]+ (?:was|had|stood|sat|walked|looked|stepped|woke|opened|closed|watched|turned|saw|felt|knew)\b/.test(s))return"namevb";
+  return"other"};
+const OPENL={dialogue:"dialogue",setting:"weather, time or setting",namevb:"a character's name and a stock verb",other:"other"};
+const firstWords=(t,k)=>String(t||"").trim().split(/\s+/).slice(0,k).join(" ");
+function openNote(text,priors){const k=openKind(text);if(k==="other")return null;const prev=priors.slice(-2).map(openKind);return prev.length===2&&prev.every(x=>x===k)?{kind:k,label:OPENL[k]}:null}
+function openAvoid(priors){
+  const last=priors.slice(-3);if(!last.length)return"";
+  const c={};last.map(openKind).forEach(k=>{if(k!=="other")c[k]=(c[k]||0)+1});const rep=Object.keys(c).filter(k=>c[k]>=2);
+  return"\n\nRecent scenes began: "+last.map(t=>'"'+firstWords(t,6)+'..."').join("; ")+". Open this scene differently"+(rep.length?", and not with "+rep.map(k=>OPENL[k]).join(" or "):"")+". Begin inside the moment with something specific to this scene."}
+const VOICE_RULE="\n\nEach speaking character keeps their own vocabulary, directness and way of steering away from a subject, so that two characters never sound alike. Differences come from who they are, never from a catchphrase or a quirk added for effect.";
+async function priorTexts(D,s,k){const idx=D.list.findIndex(x=>x.id===s.id),b=D.list.slice(0,idx).filter(x=>D.byPlan[x.id]&&D.byPlan[x.id].currentVersionId).slice(-k),o=[];for(const x of b)o.push(await textOf(D.byPlan[x.id]));return o}
+function p4Notes(q){
+  let h="";
+  const g=arr0(q.gestures);if(g.length)h+='<div class="field-hint" style="margin:0 0 8px">Repeated gestures: '+g.map(x=>esc(x.label)+" ("+x.here+" here"+(x.before?", "+x.before+" in recent scenes":"")+")").join("; ")+'. Regenerate with a note, or edit it.</div>';
+  if(q.opening)h+='<div class="field-hint" style="margin:0 0 8px">Opening: this is the third scene in a row to begin with '+esc(q.opening.label)+'.</div>';
+  if(q.voices)h+='<div class="field-hint" style="margin:0 0 8px">Voices: '+esc(q.voices.what)+'.</div>';
+  return h}
 
 try{if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol)){
   /* one notice per page load, whichever signal arrives first: the service worker saying a newer build finished downloading, or a new sw.js installing */
