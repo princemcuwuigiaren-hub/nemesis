@@ -634,6 +634,34 @@ html{ background:color-mix(in srgb, var(--bg) 93%, #000); }
 .kb-job{border-left:3px solid var(--canon)}
 .link-toggle-row{min-height:44px}
 .link-toggle-row input[type=checkbox]{width:22px;height:22px;accent-color:var(--canon);flex-shrink:0}
+
+/* UI pass: help copy behind a question icon, calmer spacing */
+.qm{position:relative;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);color:var(--text-muted);font:700 13px/1 inherit;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:8px 0 0;cursor:pointer}
+.qm::after{content:"";position:absolute;inset:-9px}
+.qm[aria-expanded=true]{background:var(--canon);color:#fff;border-color:var(--canon)}
+.qmnote{margin:8px 0 0!important;padding:10px 12px;background:var(--surface);border:1px solid var(--border-soft);border-radius:10px;font-size:12.5px!important;line-height:1.5;color:var(--text-muted)}
+.qmnote[hidden]{display:none}
+.card>.qm,.bf-hero>.qm{display:flex}
+.section-pad>.bf-hero{margin-bottom:16px}
+#tabBody .card,.section-pad .card{margin-bottom:16px}
+.bf-hero{padding:18px 16px 16px}
+.bf-hero .bf-concept+.btn,.card .card-sub+.btn,.card .field-hint+.btn,.bf-hero .bf-note+.btn{margin-top:16px!important}
+.card>.btn,.bf-hero>.btn{margin-top:16px}
+.card>.btn+.btn,.bf-hero>.btn+.btn{margin-top:12px!important}
+.btn-row{gap:12px}
+.btn-row+.btn-row{margin-top:12px!important}
+.card .btn-row,.bf-hero .btn-row{margin-top:16px}
+.card .card-title+.card-sub,.card .card-title+.qm{margin-top:6px}
+.bf-hero .bf-concept,.bf-hero .bf-note{line-height:1.55}
+.bf-hero .bf-prog{margin:4px 0 16px}
+.sheet .field-hint,.sheet .card-sub{line-height:1.5}
+.sheet .field,.sheet .field-hint+.btn-row{margin-bottom:14px}
+.sheet .pill{margin:0 6px 6px 0}
+.bf-h{margin:28px 2px 12px}
+input[type=radio],input[type=checkbox]{accent-color:var(--canon)}
+.card .btn.primary+.card-sub{margin-top:8px}
+.qm.qmi{width:22px;height:22px;margin:0 0 0 8px;font-size:12px;vertical-align:middle}
+.qm.qmi::after{inset:-11px}
 </style>
 </head>
 <body>
@@ -655,6 +683,7 @@ html{ background:color-mix(in srgb, var(--bg) 93%, #000); }
    P4.1 (calmer Writer, deeper entries): before each scene one extra call plans 5 to 8 beats (what happens, whose want drives it, what it delivers), the feel, and how each speaker sounds; the Writer follows them in order; they are saved on the scene, editable in the scene sheet and reused on Regenerate; a failed beat step never blocks writing. The Writer instructions were rewritten as positive principles (about 20 prohibitions instead of 31): people may be warm, funny or talkative, coldness is a choice, emotion through the whole person rather than close-ups of faces and joints; the dialogue Level examples no longer all clip. Characters gain a warmth field; places, factions, world rules, mysteries and themes gain optional deeper fields that the planner reads and the Writer reads when the scene plan names them. Deepen this entry, Deepen the cast and Deepen these (per category) return suggestions only (a field with 8 or more words is left alone) and nothing applies until Apply. Viewpoints card on the Floor (written and planned scenes per viewpoint, last chapter, display only) and a secondary viewpoint setting. KNOWN LIMITS (also in nemesis-known-limits.md): real Gemini output unjudged (beats quality, whether the warmer prompt fixes flat voices, false alarms in every check); tense judged by Gemini only; gesture, face-close-up and opening detection are regexes; strange sentences are only reduced by instruction, not detected in general; Writer ledger sees approved scenes only; Hands-on plans one chapter per run; character names match exactly; repetition guard is 5-word runs; one viewpoint character per scene; non-Chromium browsers untested.
    P3 (planning): chapters are planned one at a time (1, 3, 5 or 10 per run, default 1), each from the saved ones before it, with the previous chapter ending spelled out, character profiles, the last three chapter plans in detail and the recorded story state. Each chapter carries a plan document (purpose, opening, ending, events, wants, revelations, threads, open questions, timeline, dependencies), is validated (code rules plus one Gemini call; an error needs a line quoted from an earlier chapter, otherwise it is only possible), and is auto-approved only in Guided or Autonomous with no errors and a finished check. A run stops at the first chapter that needs review or fails and keeps what was saved. Untuned: validation false alarms.
    Phase 1 (story intelligence foundation, director-directive redesign): every memory record carries cls (established, approved, planned, hypothesis, belief), conf, prov, stale, draft and links, filled in one place (clsFill, on every database write). Written scenes, drafts included, feed the ledger and knowledge as soon as they are recorded (rows from a draft are marked draft). When a scene changes its rows are kept and marked out of date, then replaced when it is recorded again. A row marked Not true stays out of every prompt and stays out when rows are rebuilt. A suggestion is only ever counted again when it repeats, never promoted. Each entry sheet shows In the story so far (where, holds, last event, who knows or believes what, scenes, planned scenes), computed from the records. Schema 3 migration (n.schema) adds fields only, offers a backup first, and can run twice; no database version change. Not yet: protected decisions, decision queue, delegation (Phase 2), scene briefs (Phase 3), prose dimensions (Phase 4).
+   Phase 2 (director authority): one setting, shown as Director-led, Collaborative or Autonomous (stored as n.autonomy: handson, guided, auto), no longer paces writing. Nothing waits for scene or chapter approval. Writing stops only for (1) a problem in an earlier scene that is verified or found by code (a continuity error with a quote, a code-detected early reveal, a code-detected wrong person) and must be fixed or marked deliberate, or (2) an open decision that the next scene depends on (a later scene that shares a person with it). Permanent developments the scene shows (death, permanent exit, irreversible change, a settled mystery or arc, a new subplot) come from the record call as consequences with a quote that must really be in the scene, and go to one decision queue (proposals, kind consequence) with why, who is affected, options and what is waiting. Departures from your approved decisions (reversal) and changes to premise, ending, world rules or history always queue and can never be delegated. Subplots go through in Autonomous. You can Keep it, Rewrite the scene, Change it, Decide later (still waiting) or Let Nemesis decide that kind (a scoped delegation in Novel settings, revocable). Your answers are saved as rulings on the novel and go into every later Writer and planner prompt. A refused development written again is reopened, never accepted quietly. Protected means director-approved: entities and facts you saved or approved, plan nodes you approved by hand, the central narrative and world rules; auto-approved plan nodes are not protected. Schema 4 adds protected, delegations and rulings; no database version change. Untuned: whether Gemini finds the right consequences and flags reversals reliably.
    Not built yet: clue and foreshadowing records, tension and twist tools, reader feedback, chapter review (M6), humanizer (M7).
    Known issues: fonts load from Google Fonts (fallback fonts offline) and JetBrains Mono is referenced but never loaded; Gemini key is sent as a ?key= URL parameter, same as Canon; keyboard resizing inside sheets and real-device back gestures are untested.
    Floor: chapters flagged Needs review can still be written; scenes are written in the foreground only, and an interrupted scene can be recovered after reload only if its text had already arrived; the avoid-list is phrase based; scene text cannot be exported yet.
@@ -845,7 +874,7 @@ const dq=matchMedia("(prefers-color-scheme: dark)");
 function applyTheme(){const t=Settings.get().theme;D.dataset.theme=t==="dark"||(t!=="light"&&dq.matches)?"dark":"light"}
 D.dataset.accent="rosewood";applyTheme();if(dq.addEventListener)dq.addEventListener("change",applyTheme);
 function icon(n,s){s=s||20;return '<span class="icon" style="width:'+s+'px;height:'+s+'px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[n]||"")+'</svg></span>'}
-const TIERS={handson:["Hands-on","Pauses after every scene."],guided:["Guided","Pauses after every chapter."],auto:["Autonomous","Stops on QA errors or foundational changes."]};
+const TIERS={handson:["Director-led","Writes on its own, but asks before significant creative developments, including new chapters."],guided:["Collaborative","Handles ordinary choices itself. Asks before changes to story direction, major arcs and key characters."],auto:["Autonomous","Makes substantial creative decisions itself. Still cannot change what you approved or the story's foundations."]};
 const STAGES={conception:["Conception",""],planning:["Planning","canon"],production:["In production","status-ongoing"],complete:["Complete",""]};
 const ago=t=>{const d=Math.floor((Date.now()-t)/864e5);return "Edited "+(d<1?"today":d===1?"yesterday":d+" days ago")};
 const back='<button class="tb-btn" data-act="back" aria-label="Back">'+icon("arrowLeft",19)+'</button>';
@@ -897,10 +926,10 @@ async function vWorkspace(){
 async function vNset(){
   const n=await dbGet("novels",S.novelId);if(!n)return vLibrary();
   return view(bar(back,"Novel settings"),'<form class="section-pad" onsubmit="saveNovel(event)"><div class="field"><label>Title</label><input type="text" name="t" value="'+esc(n.title)+'" required></div><div class="field"><label>Premise</label><textarea name="p" rows="5">'+esc(n.premise)+'</textarea></div>'+scopeHtml("ns",n)+'<button type="button" class="btn ghost" data-act="prose" style="width:100%;margin-bottom:10px">Prose preferences</button><button class="btn primary" style="width:100%">Save</button>'
-    +'<div class="card" style="margin-top:18px"><div class="card-title">Director tier</div>'+tierRadios(n.autonomy||"guided","setNovelTier")+'</div>'
+    +'<div class="card" style="margin-top:18px"><div class="card-title">Director authority</div>'+tierRadios(n.autonomy||"guided","setNovelTier")+delegHtml(n)+'</div>'
     +'<button type="button" class="btn danger" style="width:100%;margin-top:6px" data-act="delnovel">Delete novel</button></form>')}
 async function saveNovel(e){e.preventDefault();const n=await dbGet("novels",S.novelId),f=e.target;n.title=f.t.value.trim();n.premise=f.p.value.trim();const sc=scopeRead("ns");if(!sc)return;Object.assign(n,sc);await save("novels",n);toast("Saved");render()}
-async function setNovelTier(v){const n=await dbGet("novels",S.novelId);n.autonomy=v;await save("novels",n);toast("Tier changed")}
+async function setNovelTier(v){const n=await dbGet("novels",S.novelId);n.autonomy=v;await save("novels",n);toast("Director authority changed")}
 const setTier=v=>{Settings.set({tier:v});toast("Default tier changed")};
 async function delNovel(){
   if(!await canonConfirm("Delete this novel and everything in it? This cannot be undone.",{danger:true,ok:"Delete novel",no:"Keep novel"}))return;
@@ -940,14 +969,14 @@ async function testKey(btn){
 function vSettings(){
   const s=Settings.get(),mode=aiMode||(s.modelMode==="fixed"?"fixed":"auto");
   const grp=(h,b)=>'<div class="settings-group"><h4>'+h+'</h4>'+b+'</div>';
-  const ai=grp("Gemini",'<div class="field-hint" style="margin:0 0 12px">Use your own Gemini API key. You can get one free from Google AI Studio.</div><div class="field"><label for="aiKeyInput">API key</label><input type="password" id="aiKeyInput" placeholder="Paste your API key" autocomplete="off" value="'+esc(s.geminiKey)+'"></div><div class="btn-row"><button class="btn ghost" data-act="savekey" style="flex:0 0 auto;width:auto;padding:13px 22px;min-height:44px">Save</button><button class="btn voice-btn" data-act="testkey" style="white-space:nowrap;min-width:0;padding:13px 10px;min-height:44px">'+icon("sparkles",16)+' Test connection</button></div>');
+  const ai=grp("Gemini",'<div class="field-hint help" style="margin:0 0 12px">Use your own Gemini API key. You can get one free from Google AI Studio.</div><div class="field"><label for="aiKeyInput">API key</label><input type="password" id="aiKeyInput" placeholder="Paste your API key" autocomplete="off" value="'+esc(s.geminiKey)+'"></div><div class="btn-row"><button class="btn ghost" data-act="savekey" style="flex:0 0 auto;width:auto;padding:13px 22px;min-height:44px">Save</button><button class="btn voice-btn" data-act="testkey" style="white-space:nowrap;min-width:0;padding:13px 10px;min-height:44px">'+icon("sparkles",16)+' Test connection</button></div>');
   const adv='<div class="settings-group" style="padding:0;overflow:hidden"><div class="pub-viewers-head" style="padding:16px"><button class="pub-viewers-toggle section-toggle'+(advOpen?" open":"")+'" data-act="advtoggle" type="button" style="min-height:44px"><span style="flex:1;text-align:left;font-family:var(--font-display);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.04em;opacity:.65;color:var(--canon-deep)">Advanced</span>'+icon("chevDown",15)+'</button></div>'
     +'<div class="pub-viewers-body'+(advOpen?" open":"")+'" id="aiAdv" style="padding:0 16px 16px"><div class="field"><label>Connection</label><div class="pill '+(s.workingModel?"voice":"neutral")+'" id="aiConn">'+(s.workingModel?"Connected \u00b7 "+esc(s.workingModel):"Not connected yet")+'</div></div>'
     +'<div class="field"><label>Model</label><div class="seg-control" id="aiModeSeg"><button type="button" data-mode="auto" class="'+(mode==="auto"?"active":"")+'">Automatic</button><button type="button" data-mode="fixed" class="'+(mode==="fixed"?"active":"")+'">Fixed</button></div></div>'
-    +'<div class="field" id="aiFixedField" style="'+(mode==="fixed"?"":"display:none")+'"><label for="modelFixedInput">Model name</label><input type="text" id="modelFixedInput" value="'+esc(s.preferredModel)+'" placeholder="Type a Gemini model name"><div class="field-hint">Fixed uses only this model and never switches. Automatic picks a working one for you.</div></div></div></div>';
+    +'<div class="field" id="aiFixedField" style="'+(mode==="fixed"?"":"display:none")+'"><label for="modelFixedInput">Model name</label><input type="text" id="modelFixedInput" value="'+esc(s.preferredModel)+'" placeholder="Type a Gemini model name"><div class="field-hint help">Fixed uses only this model and never switches. Automatic picks a working one for you.</div></div></div></div>';
   const app=grp("Appearance",'<div class="seg-control" id="thmSeg">'+[["system","System"],["light","Light"],["dark","Dark"]].map(t=>'<button type="button" data-th="'+t[0]+'"'+(s.theme===t[0]?' class="active"':'')+'>'+t[1]+'</button>').join("")+'</div>');
-  const tiers=grp("New novels",'<div class="field-hint" style="margin:0 0 6px">Default director tier.</div>'+tierRadios(s.tier,"setTier"));
-  const bk=grp("Backup",'<div class="field-hint" style="margin:0 0 12px">Your API key is never included in a backup file.</div><div class="btn-row"><button class="btn ghost" data-act="export" style="min-height:44px">Export backup</button><label class="btn ghost" style="min-height:44px">Import backup<input type="file" accept=".json,application/json" onchange="doImport(this)" style="display:none"></label></div>');
+  const tiers=grp("New novels",'<div class="field-hint help" style="margin:0 0 6px">Default director tier.</div>'+tierRadios(s.tier,"setTier"));
+  const bk=grp("Backup",'<div class="field-hint help" style="margin:0 0 12px">Your API key is never included in a backup file.</div><div class="btn-row"><button class="btn ghost" data-act="export" style="min-height:44px">Export backup</button><label class="btn ghost" style="min-height:44px">Import backup<input type="file" accept=".json,application/json" onchange="doImport(this)" style="display:none"></label></div>');
   return '<div class="view active settings-view prefs-v2" style="display:flex;flex-direction:column;">'+bar(back,"Settings")+'<div class="section-pad">'+ai+adv+app+tiers+bk+'</div></div>'}
 addEventListener("click",e=>{
   const m=e.target.closest("[data-mode]");
@@ -1003,7 +1032,7 @@ function openNewNovel(){
    +'<div class="field"><input type="text" id="nnT" placeholder="Name" data-autofocus></div>'
    +'<div class="field"><label>How it starts</label><div class="genre-chips" id="nnS">'+STARTS.map((s,i)=>'<button type="button" class="genre-chip'+(i?"":" on")+'" data-v="'+s[0]+'">'+s[1]+'</button>').join("")+'</div></div>'
    +'<div class="field" id="nnCW"><label>Concept</label><textarea id="nnC" rows="4" placeholder="A sentence or a page. Rough is fine."></textarea></div>'
-   +'<div class="field"><label>Director tier</label><div class="seg-control" id="nnR">'+Object.entries(TIERS).map(([k,v])=>'<button type="button" data-v="'+k+'"'+(k===Settings.get().tier?' class="active"':'')+'>'+v[0]+'</button>').join("")+'</div></div>'
+   +'<div class="field"><label>Director authority</label><div class="seg-control" id="nnR">'+Object.entries(TIERS).map(([k,v])=>'<button type="button" data-v="'+k+'"'+(k===Settings.get().tier?' class="active"':'')+'>'+v[0]+'</button>').join("")+'</div></div>'
    +scopeHtml("nn",{})+'<div class="field"><label>Story bible categories</label><div class="genre-chips" id="nnK">'+CATS.map(c=>'<button type="button" class="genre-chip on" data-v="'+c[0]+'">'+c[1]+'</button>').join("")+'</div></div>'
    +'<div class="btn-row"><button class="btn ghost" id="nnX">Discard</button><button class="btn primary" id="nnOk">Create novel</button></div>');
   $$("#nnS button").forEach(b=>b.onclick=()=>{$$("#nnS button").forEach(x=>x.classList.toggle("on",x===b));$("#nnCW").style.display=b.dataset.v==="ai"?"none":""});
@@ -1053,9 +1082,8 @@ async function openEnt(id,cat){
   const e=id?await dbGet("entities",id):{kind:cat,name:"",summary:""},fs=id?(await dbBy("facts","entityId",id)).filter(f=>f.status!=="superseded"):[];
   openSheet('<div class="sheet-sticky-top"><div class="sheet-handle"></div><h2>'+(id?esc(e.name):"New "+catLabel(e.kind).toLowerCase())+'</h2></div>'
    +'<div class="field"><label>Name</label><input type="text" id="eN" value="'+esc(e.name)+'" data-autofocus></div>'
-   +'<div class="field"><label>Summary</label><textarea id="eS" rows="3">'+esc(e.summary)+'</textarea></div>'+(isChar(e)?profFieldsHtml(e,nv):deepEditHtml(e))+deepenHtml(e)
-   +(id?'<div class="field"><label>Facts</label>'+(fs.map(f=>'<div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--border-soft)"><span class="pill '+(f.prov.origin==="director"?"canon":f.prov.origin==="ai"?"voice":"neutral")+'">'+f.prov.origin+' · '+f.status+'</span><span style="flex:1;font-size:13.5px">'+esc(f.text)+'</span><button class="tb-btn" data-do="delfact" data-id="'+f.id+'" aria-label="Remove fact">'+icon("close",14)+'</button></div>').join("")||'<div class="field-hint">No facts yet. An empty field means unknown, never invented.</div>')+'<div style="display:flex;gap:8px;margin-top:8px"><input type="text" id="eF" placeholder="Add a fact"><button class="btn ghost fit" data-do="addfact" data-id="'+id+'">Add</button></div></div>':'')
-   +(id?await entMemoryHtml(e):"")
+   +'<div class="field"><label>Summary</label><textarea id="eS" rows="3">'+esc(e.summary)+'</textarea></div>'+(id?await entMemoryHtml(e):"")+(isChar(e)?profFieldsHtml(e,nv):deepEditHtml(e))+deepenHtml(e)
+   +(id?'<div class="field"><label>Facts</label>'+(fs.map(f=>'<div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--border-soft)"><span class="pill '+(f.prov.origin==="director"?"canon":f.prov.origin==="ai"?"voice":"neutral")+'">'+f.prov.origin+' · '+f.status+'</span><span style="flex:1;font-size:13.5px">'+esc(f.text)+'</span><button class="tb-btn" data-do="delfact" data-id="'+f.id+'" aria-label="Remove fact">'+icon("close",14)+'</button></div>').join("")||'<div class="field-hint help">No facts yet. An empty field means unknown, never invented.</div>')+'<div style="display:flex;gap:8px;margin-top:8px"><input type="text" id="eF" placeholder="Add a fact"><button class="btn ghost fit" data-do="addfact" data-id="'+id+'">Add</button></div></div>':'')
    +'<div class="btn-row">'+(id?'<button class="btn danger" data-do="delent" data-id="'+id+'">Delete</button>':'<button class="btn ghost" data-do="close">Discard</button>')+'<button class="btn primary" data-do="saveent" data-id="'+(id||"")+'" data-cat="'+e.kind+'">'+(id?"Save":"Add entry")+'</button></div>')}
 
 async function openMod(id){
@@ -1079,8 +1107,8 @@ async function decide(id,act,x){decide.b=decide.b||new Set();if(decide.b.has(id)
 async function decideRun(id,act,x){
   const p=await dbGet("proposals",id);if(!p||p.status!=="pending")return;const q=x||p.payload,o=x?"director":"ai";
   if(act!=="reject"){
-    const e=await save("entities",Object.assign({novelId:p.novelId,kind:q.kind,name:q.name,summary:q.summary,status:"approved",prov:{origin:o,ref:id,at:Date.now()}},q.profile&&profHas(q.profile)?{profile:Object.assign({},q.profile,{status:"approved"})}:{}));
-    for(const t of q.facts||[])await save("facts",{entityId:e.id,text:t,scope:"permanent",status:"approved",prov:{origin:o,ref:id,at:Date.now()}})}
+    const e=await save("entities",Object.assign({novelId:p.novelId,kind:q.kind,name:q.name,summary:q.summary,status:"approved",protected:true,prov:{origin:o,ref:id,at:Date.now()}},q.profile&&profHas(q.profile)?{profile:Object.assign({},q.profile,{status:"approved"})}:{}));
+    for(const t of q.facts||[])await save("facts",{entityId:e.id,text:t,scope:"permanent",status:"approved",protected:true,prov:{origin:o,ref:id,at:Date.now()}})}
   p.status=act==="reject"?"rejected":act==="modify"?"modified":"approved";await save("proposals",p);
   await save("decisions",{novelId:p.novelId,targetType:"proposal",targetId:id,action:act,at:Date.now()});
   toast(act==="reject"?"Rejected. Nemesis will not propose it again.":"Approved and added to the story bible.");render()}
@@ -1126,7 +1154,7 @@ const tgt=n=>Math.max(1,parseInt(n&&n.target)||60),cw=n=>Math.max(300,parseInt(n
 const devsNeeded=n=>Math.min(60,Math.max(6,Math.round(tgt(n)/CPD[pacingOf(n)])));
 const sceneRange=n=>{const k=Math.max(1,Math.min(8,Math.round(cw(n)/700)));return[Math.max(1,k-1),k+1]};
 const PACE_TXT={fast:"Pacing: FAST. Move quickly: each development should take about 2 to 4 chapters. Keep scenes tight and still give each major character a real beat every few chapters.",balanced:"Pacing: BALANCED. Mix plot progress with character and relationship development: each development should take about 4 to 6 chapters.",slow:"Pacing: SLOW. Spend about 6 to 8 chapters on each development, on consequences, character depth and relationships that already exist in the plan. Slow means depth, never filler."};
-const GUARD="Every chapter must advance at least one listed development. Every scene must have a purpose and a concrete change (a decision, a revelation, a shift in a relationship or a changed situation). Never add plot threads, characters, factions or twists that are not in the story bible or the approved plan.";
+const GUARD="Every chapter must advance at least one listed development. Every scene needs a situation and a dramatic question, and it moves the story through a decision, a revelation, a shift in a relationship, a changed situation, or a change of pressure, mood or understanding. A quiet scene is allowed. A plan is direction, not a script, so leave room for the Writer to discover. Never add plot threads, characters, factions or twists that are not in the story bible or the approved plan.";
 function stepOf(ns,n){
   const L=l=>ns.filter(x=>x.layer===l),nm=["","central narrative","arcs","developments","chapters"],lb=["","Draft the central narrative","Draft arcs","Draft developments",(batchOf(n)===1?"Plan next chapter":"Plan next "+batchOf(n)+" chapters")];
   for(let l=1;l<=4;l++){
@@ -1138,10 +1166,10 @@ function stepOf(ns,n){
   return{layer:4,label:batchOf(n)===1?"Plan next chapter":"Plan next "+batchOf(n)+" chapters",more:true}}
 function scopeHtml(p,v){
   const t=tgt(v),pre=LENS.find(x=>x[0]===t),wr=wordsRange(v),wp=WRANGES.find(x=>x[0]===wr[0]&&x[1]===wr[1]);
-  return '<div class="field"><label>Pacing</label><div class="seg-control" id="'+p+'P">'+PACES.map(x=>'<button type="button" data-v="'+x[0]+'"'+(x[0]===pacingOf(v)?' class="active"':'')+'>'+x[1]+'</button>').join("")+'</div><div class="field-hint">How fast the plan moves. Never filler, never new threads.</div></div>'
+  return '<div class="field"><label>Pacing</label><div class="seg-control" id="'+p+'P">'+PACES.map(x=>'<button type="button" data-v="'+x[0]+'"'+(x[0]===pacingOf(v)?' class="active"':'')+'>'+x[1]+'</button>').join("")+'</div><div class="field-hint help">How fast the plan moves. Never filler, never new threads.</div></div>'
    +'<div class="field"><label>Target length</label><div class="genre-chips" id="'+p+'L">'+LENS.map(x=>'<button type="button" class="genre-chip'+(pre&&pre[0]===x[0]?" on":"")+'" data-v="'+x[0]+'">'+x[1]+' ('+x[0]+')</button>').join("")+'<button type="button" class="genre-chip'+(pre?"":" on")+'" data-v="custom">Custom</button></div>'
-   +'<div id="'+p+'LC" style="margin-top:8px;'+(pre?"display:none":"")+'"><input type="text" inputmode="numeric" id="'+p+'LN" value="'+(pre?"":t)+'" placeholder="Number of chapters"></div><div class="field-hint">A guide, not a cap. You can plan past it any time.</div></div>'
-   +'<div class="field"><label>Words per chapter</label><div class="genre-chips" id="'+p+'WR">'+WRANGES.map(x=>'<button type="button" class="genre-chip'+(wp&&wp[0]===x[0]?" on":"")+'" data-v="'+x[0]+'-'+x[1]+'">'+x[0]+' to '+x[1]+'</button>').join("")+'<button type="button" class="genre-chip'+(wp?"":" on")+'" data-v="custom">Custom</button></div><div id="'+p+'WC" style="margin-top:8px;gap:8px;'+(wp?"display:none":"display:flex")+'"><input type="text" inputmode="numeric" id="'+p+'Wmin" value="'+wr[0]+'" aria-label="Fewest words"><input type="text" inputmode="numeric" id="'+p+'Wmax" value="'+wr[1]+'" aria-label="Most words"></div><div class="field-hint">A range, not a quota. The top is a ceiling. Nemesis ends a scene once its change has landed and never pads.</div></div>'}
+   +'<div id="'+p+'LC" style="margin-top:8px;'+(pre?"display:none":"")+'"><input type="text" inputmode="numeric" id="'+p+'LN" value="'+(pre?"":t)+'" placeholder="Number of chapters"></div><div class="field-hint help">A guide, not a cap. You can plan past it any time.</div></div>'
+   +'<div class="field"><label>Words per chapter</label><div class="genre-chips" id="'+p+'WR">'+WRANGES.map(x=>'<button type="button" class="genre-chip'+(wp&&wp[0]===x[0]?" on":"")+'" data-v="'+x[0]+'-'+x[1]+'">'+x[0]+' to '+x[1]+'</button>').join("")+'<button type="button" class="genre-chip'+(wp?"":" on")+'" data-v="custom">Custom</button></div><div id="'+p+'WC" style="margin-top:8px;gap:8px;'+(wp?"display:none":"display:flex")+'"><input type="text" inputmode="numeric" id="'+p+'Wmin" value="'+wr[0]+'" aria-label="Fewest words"><input type="text" inputmode="numeric" id="'+p+'Wmax" value="'+wr[1]+'" aria-label="Most words"></div><div class="field-hint help">A range, not a quota. The top is a ceiling. Nemesis ends a scene once its change has landed and never pads.</div></div>'}
 function scopeRead(p){
   const pc=(($("#"+p+"P .active")||{dataset:{}}).dataset.v)||"balanced",sel=($("#"+p+"L .on")||{dataset:{}}).dataset.v;
   const t=sel==="custom"?parseInt($("#"+p+"LN").value,10):parseInt(sel,10),ws=($("#"+p+"WR .on")||{dataset:{}}).dataset.v,wv=ws&&ws!=="custom"?ws.split("-").map(Number):[parseInt($("#"+p+"Wmin").value,10),parseInt($("#"+p+"Wmax").value,10)];
@@ -1164,7 +1192,8 @@ async function planCtx(n,all){
   if(a.length)s+="\n\nArcs:\n"+a.map((x,i)=>"A"+(i+1)+": "+x.title+": "+clip(x.summary,200)).join("\n");
   if(dv.length)s+="\n\nDevelopments:\n"+dv.map((x,i)=>"D"+(i+1)+": "+x.title+": "+clip(x.summary,200)).join("\n");
   if(ch.length){const L=ch.slice(-10),m=Math.max(0,L.length-3);s+="\n\nChapters so far (last 10 of "+ch.length+"; the last three in detail):\n"+L.map((x,i)=>"Chapter "+x.order+": "+x.title+": "+clip(x.summary,i<m?160:300)+(i>=m&&x.doc?"\n"+docFull(x.doc):"")).join("\n")}
-  s+=await planStanding(n);
+  {const wl=await writtenLines(n,6);if(wl.length)s+="\n\nWhat has actually been written (this is what happened, even where the plan said otherwise):\n"+wl.join("\n")}
+  s+=await planStanding(n);s+=await rulingsBlock(n);
   const rj=all.filter(x=>x.status==="rejected"&&x.layer<5).map(x=>x.title);
   if(rj.length)s+="\n\nRejected by the director, do not propose again:\n"+rj.slice(-15).join("; ");
   return s}
@@ -1175,7 +1204,7 @@ function buildPrompt(l,ctx,all,n,o){
    1:'Task: Write the central narrative. Return JSON: {"premise":"2-3 sentences","conflict":"the central conflict","stakes":"what is lost if it fails","themes":["2 to 4 themes"],"ending":"the intended ending, provisional (ENDING FIRST only, otherwise an empty string)","open_questions":["3 to 5 questions the story should discover (DISCOVERY only, otherwise an empty array)"]}',
    2:'Task: Propose '+(tgt(n)>30?"4 to 7":"3 to 5")+' major story arcs (character journeys, antagonistic forces, mysteries, relationships). Return JSON: {"arcs":[{"title":"","kind":"character|antagonist|mystery|relationship|conflict","summary":"2 sentences"}]}',
    3:'Task: Propose '+Math.max(3,bt-2)+' to '+bt+(dv?' MORE':'')+' plot developments'+(dv?' that continue the story after D'+dv+'. Continue the numbering from D'+(dv+1)+'. Progress every arc toward its resolution without contradicting earlier developments':' across the arcs, in story order')+'. Each is an event, revelation, decision or consequence, with why it happens and what follows. Label them in order. Return JSON: {"developments":[{"title":"","summary":"cause and consequence in 2 sentences","arc":"A1","depends_on":["earlier D labels it requires, may be empty"]}]}',
-   4:'Task: Plan chapters '+k+' to '+(k+B-1)+' ('+B+' chapters). Each chapter will be about '+cw(n)+' words, so give it '+sr[0]+' to '+sr[1]+' scenes. Each chapter is advanced by one or two listed developments ("develops"), using the D labels exactly as listed, for example "D3", and each development should last about '+x+' chapters. Do not conclude the novel unless these chapters reach the planned ending. Within a chapter, every scene must cover a different moment or event; never plan two scenes that describe the same thing. The purpose of a scene should come from what a character wants, fears or is trying to do, and any information the reader needs should arrive as a result of that, not as the purpose itself: avoid purposes such as X explains Y to Z. Give each supporting character in a scene an aim of their own. Return JSON: {"chapters":[{"title":"","summary":"objective and progression in 2 sentences","develops":["D labels this chapter advances"],"scenes":[{"title":"","purpose":"what the scene must achieve","change":"what is different by the end of the scene","participants":["character names from the story bible"]}]}]}'};
+   4:'Task: Plan chapters '+k+' to '+(k+B-1)+' ('+B+' chapters). Each chapter will be about '+cw(n)+' words, so give it '+sr[0]+' to '+sr[1]+' scenes. Each chapter is advanced by one or two listed developments ("develops"), using the D labels exactly as listed, for example "D3", and each development should last about '+x+' chapters. Do not conclude the novel unless these chapters reach the planned ending. Within a chapter, every scene must cover a different moment or event; never plan two scenes that describe the same thing. The purpose of a scene should come from what a character wants, fears or is trying to do, and any information the reader needs should arrive as a result of that, not as the purpose itself: avoid purposes such as X explains Y to Z. Give each supporting character in a scene an aim of their own. Return JSON: {"chapters":[{"title":"","summary":"objective and progression in 2 sentences","develops":["D labels this chapter advances"],"scenes":[{"title":"","situation":"where things stand and who is in play","question":"the dramatic question this scene explores","intentions":"what the main characters are each after","pressure":"what pushes on them","stakes":"what could be lost or gained","movement":"where the scene may end up, or empty for a quiet scene","bounds":"what this scene must not do or resolve","participants":["character names from the story bible"]}]}]}'};
   return ctx+"\n\n"+T[l]+(o.brief&&l===4?" Keep every summary, purpose and change to one short sentence. Every chapter must list at least one development label from the list above in \"develops\".":"")}
 const lbls=v=>(Array.isArray(v)?v:[v]).flatMap(s=>(String(s==null?"":s).match(/D\s*\d+/gi)||[]).map(t=>t.replace(/\s/g,"").toUpperCase()));
 function parsePlan(l,d,n,all,batch){
@@ -1201,7 +1230,7 @@ function parsePlan(l,d,n,all,batch){
       const dp=[...new Set(lbls(c.develops).map(s=>id[s]).filter(Boolean))];if(!dp.length){nd++;return}
       const sc=arr0(c.scenes).filter(s=>s&&has(s.title)).slice(0,mx+2);if(!sc.length)return;
       const ch=mk({layer:4,order:k++,title:clip(c.title,90),summary:clip(c.summary,400),dependsOn:dp,doc:normDoc(c)});out.push(ch);
-      sc.forEach((s,j)=>out.push(mk({layer:5,parentId:ch.id,order:j+1,title:clip(s.title,90),summary:clip(s.purpose||s.summary,300),change:clip(s.change,200),participants:arr0(s.participants).map(p=>clip(p,40)).filter(has).slice(0,6)})))})}
+      sc.forEach((s,j)=>out.push(mk({layer:5,parentId:ch.id,order:j+1,title:clip(s.title,90),summary:clip(s.situation||s.purpose||s.summary,300),change:clip(s.movement||s.change,200),brief:normBrief(s,s),participants:arr0(s.participants).map(p=>clip(p,40)).filter(has).slice(0,6)})))})}
   if(!out.length)throw(l===4&&nd?new Error("No usable chapters: none named a development"):bad());
   return out}
 const arr0=v=>Array.isArray(v)?v:[];
@@ -1232,7 +1261,7 @@ async function planStep(){
 async function syncStage(){const n=await dbGet("novels",S.novelId),pl=await dbBy("plan","novelId",S.novelId);if(n.stage==="conception"&&pl.some(x=>x.layer===1&&x.status==="approved")){n.stage="planning";await save("novels",n)}}
 async function approveNodes(ids,action){
   const all=await dbBy("plan","novelId",S.novelId),set=new Set(ids),now=Date.now(),ops=[];
-  all.forEach(x=>{if((set.has(x.id)||(x.layer===5&&set.has(x.parentId)))&&(x.status==="proposed"||x.review)){x.status="approved";x.review=false;x.updatedAt=now;ops.push(["plan",x])}});
+  all.forEach(x=>{if((set.has(x.id)||(x.layer===5&&set.has(x.parentId)))&&(x.status==="proposed"||x.review)){x.status="approved";x.protected=true;x.review=false;x.updatedAt=now;ops.push(["plan",x])}});
   if(!ops.length)return;
   ops.push(["decisions",stamp({novelId:S.novelId,targetType:"plan",targetId:ids.join(",").slice(0,200),action:action||"approve",at:now})]);
   await dbBatch(ops);await syncStage();toast("Approved.");render()}
@@ -1264,7 +1293,7 @@ async function planTab(n){
    +'<div class="bf-prog"><div class="bf-prog-top"><span>'+planned+' of '+T+' chapters planned</span><span>'+wordsRange(n)[0]+' to '+wordsRange(n)[1]+' words each</span></div><div class="bf-bar"><i style="width:'+Math.min(100,Math.round(planned/T*100))+'%"></i></div>'+(planned>=T?'<p class="bf-note" style="margin:6px 0 0">Target reached. You can keep planning past it.</p>':'')+'</div>'
    +'<div class="bf-lab">Approach</div><div class="seg-control" id="apSeg" style="margin-bottom:10px"><button type="button" data-ap="ending" class="'+(ap==="ending"?"active":"")+'">Ending first</button><button type="button" data-ap="discovery" class="'+(ap==="discovery"?"active":"")+'">Discovery</button></div>'
    +'<div class="bf-lab">Pacing</div><div class="seg-control" id="pcSeg" style="margin-bottom:12px">'+PACES.map(x=>'<button type="button" data-pc="'+x[0]+'" class="'+(x[0]===pc?"active":"")+'">'+x[1]+'</button>').join("")+'</div>'
-   +'<div class="bf-lab">Chapters per run</div><div class="seg-control" id="bcSeg" style="margin-bottom:6px">'+BATCHES.map(b=>'<button type="button" data-bc="'+b+'" class="'+(b===batchOf(n)?"active":"")+'">'+b+'</button>').join("")+'</div><div class="field-hint" style="margin:0 0 12px">Each chapter is planned from the saved ones before it. A run stops early if a chapter needs your review'+((n.autonomy||"guided")==="handson"?". In Hands-on every chapter needs your approval, so it plans one at a time":"")+'.</div>'
+   +'<div class="bf-lab">Chapters per run</div><div class="seg-control" id="bcSeg" style="margin-bottom:6px">'+BATCHES.map(b=>'<button type="button" data-bc="'+b+'" class="'+(b===batchOf(n)?"active":"")+'">'+b+'</button>').join("")+'</div><div class="field-hint help" style="margin:0 0 12px">Each chapter is planned from the saved ones before it. A run stops early if a chapter needs your review'+((n.autonomy||"guided")==="handson"?". In Director-led every chapter needs your approval, so it plans one at a time":"")+'.</div>'
    +(st.layer?'<p class="bf-concept" style="font-size:14px">'+(ns.length?"Next: "+st.label.toLowerCase()+".":"Nemesis turns your concept and approved story bible into a layered plan, one step at a time.")+'</p><button class="btn primary" data-do="planstep" style="width:100%;margin-top:12px">'+st.label+'</button>':'<p class="bf-concept" style="font-size:14px">'+st.note+'</p>')+'</div>';
   for(let l=1;l<=4;l++){
     const L=ns.filter(x=>x.layer===l).sort((a,b)=>(a.order||0)-(b.order||0));if(!L.length)continue;
@@ -1277,12 +1306,12 @@ async function openNode(id){
   openSheet('<div class="sheet-sticky-top"><div class="sheet-handle"></div><h2>'+(x.layer===4?"Chapter "+x.order:SING[x.layer])+'</h2></div>'
    +(x.review?'<div class="field-hint warn" style="margin:0 0 10px">Flagged because something this depends on was rejected. Save or approve to mark it reviewed.</div>':'')
    +'<div class="field"><label for="pnT">Title</label><input type="text" id="pnT" value="'+esc(x.title)+'" data-autofocus></div>'
-   +'<div class="field"><label for="pnS">'+(x.layer===5?"Purpose":"Summary")+'</label><textarea id="pnS" rows="'+(x.layer===1?9:5)+'">'+esc(x.summary)+'</textarea></div>'+(x.layer===5?'<div class="field"><label for="pnC">What changes</label><input type="text" id="pnC" value="'+esc(x.change||"")+'" placeholder="What is different by the end of the scene"></div>':'')
+   +(x.layer===5?'<div class="field-hint help" style="margin:-4px 0 10px">A brief is direction, not a script. Fill what helps and leave the rest empty. Beats are only possibilities for the Writer, and the Writer may find something better.</div>':'')+'<div class="field"><label for="pnS">'+(x.layer===5?"Situation":"Summary")+'</label><textarea id="pnS" rows="'+(x.layer===1?9:5)+'">'+esc(x.summary)+'</textarea></div>'+(x.layer===5?(()=>{const b=briefOf(x);return[["pnQ","Open question","question"],["pnI","What they are after","intentions"],["pnP","Pressure","pressure"],["pnK","Stakes","stakes"]].map(r=>'<div class="field"><label for="'+r[0]+'">'+r[1]+'</label><input type="text" id="'+r[0]+'" value="'+esc(b[r[2]])+'"></div>').join("")+'<div class="field"><label for="pnC">Where it may end up</label><input type="text" id="pnC" value="'+esc(b.movement)+'"><div class="field-hint help">Optional. Leave it empty for a quiet scene.</div></div><div class="field"><label for="pnB">Bounds</label><input type="text" id="pnB" value="'+esc(b.bounds)+'"><div class="field-hint help">What this scene must not do or resolve.</div></div>'})():'')
    +(x.layer===5&&(x.participants||[]).length?'<div class="field-hint" style="margin:-6px 0 12px">With '+esc(x.participants.join(", "))+'</div>':'')
-   +(x.layer===5?'<div class="field"><label for="pnV">Viewpoint character</label><input type="text" id="pnV" value="'+esc(x.pov||"")+'" placeholder="Book default"><div class="field-hint">Whose eyes this scene is through. Leave empty to use the book default.</div></div>':'')
+   +(x.layer===5?'<div class="field"><label for="pnV">Viewpoint character</label><input type="text" id="pnV" value="'+esc(x.pov||"")+'" placeholder="Book default"><div class="field-hint help">Whose eyes this scene is through. Leave empty to use the book default.</div></div>':'')
    +(x.layer===4?'<div class="bf-lab">Chapter check</div>'+chCheckHtml(x)+'<div class="bf-lab" style="margin-top:14px">Chapter plan</div>'+chDocFields(x):'')
    +(deps.length?'<div class="field-hint" style="margin:0 0 12px">Depends on: '+deps.map(y=>esc(y.title)).join(", ")+'</div>':'')
-   +(kids.length?'<div class="field"><label>Scenes</label>'+kids.map(k=>'<div data-do="node" data-id="'+k.id+'" style="padding:10px 0;border-top:1px solid var(--border-soft);cursor:pointer"><b>'+esc(k.title)+'</b><div class="field-hint">'+esc(clip(k.summary,110))+(k.change?" Changes: "+esc(clip(k.change,90)):" No change defined.")+'</div></div>').join("")+'</div>':'')
+   +(kids.length?'<div class="field"><label>Scenes</label>'+kids.map(k=>'<div data-do="node" data-id="'+k.id+'" style="padding:10px 0;border-top:1px solid var(--border-soft);cursor:pointer"><b>'+esc(k.title)+'</b><div class="field-hint">'+esc(clip(k.summary,110))+(k.change?" Ends: "+esc(clip(k.change,90)):"")+'</div></div>').join("")+'</div>':'')
    +'<div class="btn-row"><button class="btn ghost" data-do="rejectnode" data-id="'+id+'">Reject</button><button class="btn primary" data-do="savenode" data-id="'+id+'" data-approve="'+(pr?1:0)+'">'+(pr?"Approve":"Save")+'</button></div>')}
 addEventListener("click",async e=>{
   const a=e.target.closest("[data-ap]");
@@ -1301,8 +1330,8 @@ addEventListener("click",async e=>{
   if(d==="savenode"){
     const tt=$("#pnT").value.trim();if(!tt)return toast("Give it a title first.");
     const all=await dbBy("plan","novelId",S.novelId),x=all.find(y=>y.id===id);if(!x)return;
-    const su=$("#pnS").value.trim(),ce=$("#pnC"),cv=ce?ce.value.trim():(x.change||""),ch=tt!==x.title||su!==x.summary||cv!==(x.change||""),pr=x.status==="proposed",rv=x.review,ap=t.dataset.approve==="1",now=Date.now(),ops=[];
-    x.title=tt;x.summary=su;if(ce)x.change=cv;if(x.layer===4&&$("#pd_purpose"))x.doc=readDoc(x);const pve=$("#pnV");if(pve)x.pov=clip(pve.value,60);x.review=false;x.updatedAt=now;if(ap)x.status="approved";ops.push(["plan",x]);
+    const su=$("#pnS").value.trim(),ce=$("#pnC"),cv=ce?ce.value.trim():(x.change||""),ch=(x.layer===5&&$("#pnQ")&&Object.keys(BMAP).some(i=>$("#"+i).value.trim()!==briefOf(x)[BMAP[i]]))||tt!==x.title||su!==x.summary||cv!==(x.change||""),pr=x.status==="proposed",rv=x.review,ap=t.dataset.approve==="1",now=Date.now(),ops=[];
+    x.title=tt;x.summary=su;if(ce)x.change=cv;if(x.layer===5&&$("#pnQ"))x.brief=normBrief({situation:su,question:$("#pnQ").value,intentions:$("#pnI").value,pressure:$("#pnP").value,stakes:$("#pnK").value,movement:cv,bounds:$("#pnB").value},null);if(x.layer===4&&$("#pd_purpose"))x.doc=readDoc(x);const pve=$("#pnV");if(pve)x.pov=clip(pve.value,60);x.review=false;x.updatedAt=now;if(ap){x.status="approved";x.protected=true}ops.push(["plan",x]);
     if(ap)all.filter(y=>y.layer===5&&y.parentId===id&&y.status==="proposed").forEach(y=>{y.status="approved";ops.push(["plan",y])});
     ops.push(["decisions",stamp({novelId:S.novelId,targetType:"plan",targetId:id,action:pr?(ch?"modify":"approve"):(rv?"review":"edit"),at:now})]);
     await dbBatch(ops);await syncStage();await closeSheet();toast(pr?"Approved.":"Saved.");render()}});
@@ -1320,10 +1349,10 @@ async function vProse(){
   const n=await dbGet("novels",S.novelId);if(!n)return vLibrary();
   const p=proseOf(n),g=(h,b)=>'<div class="settings-group"><h4>'+h+'</h4>'+b+'</div>';
   return '<div class="view active settings-view prefs-v2" style="display:flex;flex-direction:column;">'+bar(back,"Prose preferences")+'<div class="section-pad">'
-   +g("Voice",segH("pov",p.pov)+segH("tense",p.tense)+'<div class="field"><label for="prV">Main viewpoint character</label><input type="text" id="prV" value="'+esc(p.povMain)+'" placeholder="Optional, for example Elias"><div class="field-hint">Used for first person and third limited. A single scene can override it in the plan.</div></div><div class="field"><label for="prV2">Secondary viewpoint character</label><input type="text" id="prV2" value="'+esc(p.povSecond)+'" placeholder="Optional"><div class="field-hint">Shown in the Viewpoints card on the Floor. Set it on a scene in the plan to use it there.</div></div>')
+   +g("Voice",segH("pov",p.pov)+segH("tense",p.tense)+'<div class="field"><label for="prV">Main viewpoint character</label><input type="text" id="prV" value="'+esc(p.povMain)+'" placeholder="Optional, for example Elias"><div class="field-hint help">Used for first person and third limited. A single scene can override it in the plan.</div></div><div class="field"><label for="prV2">Secondary viewpoint character</label><input type="text" id="prV2" value="'+esc(p.povSecond)+'" placeholder="Optional"><div class="field-hint help">Shown in the Viewpoints card on the Floor. Set it on a scene in the plan to use it there.</div></div>')
    +g("Style",segH("register",p.register)+segH("rhythm",p.rhythm)+segH("dialogue",p.dialogue)+segH("density",p.density)+segH("monologue",p.monologue)+segH("figurative",p.figurative)+'<div class="field"><label for="prN">Anything else about how it should read</label><textarea id="prN" rows="3">'+esc(p.notes)+'</textarea></div>')
-   +g("Your voice",'<div class="field-hint" style="margin:0 0 10px">Paste a passage of your own writing. Nemesis studies how you write and turns it into a style guide you can edit.</div><div class="field"><label for="prS">Writing sample</label><textarea id="prS" rows="6" placeholder="Paste at least 300 characters of your own prose">'+esc(p.voiceSample)+'</textarea></div><div class="btn-row"><button class="btn voice-btn" data-do="analyze" style="min-height:44px">'+icon("sparkles",16)+' Analyze my voice</button></div><div class="field" style="margin-top:12px"><label for="prG">Style guide</label><textarea id="prG" rows="8" placeholder="Appears here after analysis. You can also write your own.">'+esc(p.voiceGuide)+'</textarea></div>')
-   +g("Avoid-list",'<div class="field-hint" style="margin:0 0 10px">One phrase per line. Every scene is checked against this list by code.</div><div class="field"><textarea id="prA" rows="8">'+esc(p.avoid.join("\n"))+'</textarea></div><div class="btn-row"><button class="btn ghost" data-do="avoiddef" style="min-height:44px">Reset to defaults</button></div>')
+   +g("Your voice",'<div class="field-hint help" style="margin:0 0 10px">Paste a passage of your own writing. Nemesis studies how you write and turns it into a style guide you can edit.</div><div class="field"><label for="prS">Writing sample</label><textarea id="prS" rows="6" placeholder="Paste at least 300 characters of your own prose">'+esc(p.voiceSample)+'</textarea></div><div class="btn-row"><button class="btn voice-btn" data-do="analyze" style="min-height:44px">'+icon("sparkles",16)+' Analyze my voice</button></div><div class="field" style="margin-top:12px"><label for="prG">Style guide</label><textarea id="prG" rows="8" placeholder="Appears here after analysis. You can also write your own.">'+esc(p.voiceGuide)+'</textarea></div>')
+   +g("Avoid-list",'<div class="field-hint help" style="margin:0 0 10px">One phrase per line. Every scene is checked against this list by code.</div><div class="field"><textarea id="prA" rows="8">'+esc(p.avoid.join("\n"))+'</textarea></div><div class="btn-row"><button class="btn ghost" data-do="avoiddef" style="min-height:44px">Reset to defaults</button></div>')
    +'<div class="btn-row" style="margin-top:6px"><button class="btn primary" data-do="saveprose" style="min-height:48px">Save prose preferences</button></div></div></div>'}
 function readProse(){
   const p={};$$("[data-pk]").forEach(b=>{const a=b.querySelector(".active");p[b.dataset.pk]=a?a.dataset.v:PDEF[b.dataset.pk]});
@@ -1381,19 +1410,12 @@ async function floorData(n){
   const recs=(await dbAll("scenes")).filter(x=>x.novelId===n.id);
   return{all,chs,co,list,ents:await dbBy("entities","novelId",n.id),byPlan:Object.fromEntries(recs.map(r=>[r.planId,r]))}}
 const nextOf=D=>D.list.find(s=>!D.byPlan[s.id]||!D.byPlan[s.id].currentVersionId);
-function gateOf(n,D,nx){
-  if((n.planApproach||"ending")==="ending"&&(n.autonomy||"guided")==="handson"){const m=profMissing(D.ents||[],nx);if(m.length)return"Ending first needs each character set before writing. Add or approve a profile for "+m.join(", ")+" in Ledger, Characters. Develop profiles can draft them for you."}
-  const tier=n.autonomy||"guided",dr=D.list.filter(s=>D.byPlan[s.id]&&D.byPlan[s.id].status==="drafted");
-  if(tier==="handson"&&dr.length)return"Review and approve the drafted scene before writing the next one.";
-  if(tier==="guided"){const o=dr.filter(s=>D.co[s.parentId].order<D.co[nx.parentId].order)[0];if(o)return"Approve chapter "+D.co[o.parentId].order+" before writing the next chapter."}
-  if(tier==="auto"&&dr.length)return"A scene needs your review before Nemesis continues."
-  return""}
 const SYS_W="You are the Writer for a novel production system. You write scene prose for the author's novel, following the author's style settings and prose preferences; the voice guide shapes tone and diction but never overrides a style setting. Write people, not instruments. Every speaking character has their own voice, wants and way of reacting, and no two sound alike. Characters can be warm, funny, tender, nervous, talkative, evasive or blunt, as they are: coldness is something a character does for a reason, never the default tone of the book. Supporting characters pursue small aims of their own. Characterisation comes from behaviour and choices rather than named traits, and never stalls the scene's purpose. Describe what a reader can picture in one pass, and show emotion through the whole person (speech, movement, choices) instead of close-ups of faces and joints. Output only the scene text, with no title, headings, notes or commentary.";
 const SYS_C="You are the QA editor of a novel production system. Judge strictly and briefly. Return only the JSON asked for.";
 function sceneCtx(n,D,s){
   const ch=D.co[s.parentId],c=okd(D.all,1)[0],sib=D.list.filter(x=>x.parentId===s.parentId),dev=(ch.dependsOn||[]).map(i=>D.all.find(y=>y.id===i)).filter(Boolean).map(y=>y.title);
   const prev=D.list.filter(x=>(D.co[x.parentId].order<ch.order||(x.parentId===s.parentId&&x.order<s.order))&&D.byPlan[x.id]&&D.byPlan[x.id].summary).slice(-3).map(x=>"- Chapter "+D.co[x.parentId].order+", scene "+x.order+": "+clip(D.byPlan[x.id].summary,300));
-  return{ch,c,sib,dev,prev,head:"Novel: "+n.title+(c?"\nCentral narrative (for direction only, do not resolve it early):\n"+clip(c.summary,700):"")+"\n\nChapter "+ch.order+": "+ch.title+"\n"+clip(ch.summary,300)+(ch.doc&&docBrief(ch.doc)?"\nChapter plan notes: "+docBrief(ch.doc):"")+(dev.length?"\nThis chapter advances: "+dev.join("; "):"")+"\nScenes in this chapter:\n"+sib.map(x=>x.order+". "+x.title+": "+clip(x.summary,120)+(x.id===s.id?"  <== this scene":"")).join("\n")+"\n\nThis scene: "+s.title+"\nPurpose: "+clip(s.summary,300)+"\nWhat must change by the end: "+(clip(s.change,200)||"something concrete")+"\nCharacters: "+((s.participants||[]).join(", ")||"as needed")}}
+  return{ch,c,sib,dev,prev,head:"Novel: "+n.title+(c?"\nCentral narrative (for direction only, do not resolve it early):\n"+clip(c.summary,700):"")+"\n\nChapter "+ch.order+": "+ch.title+"\n"+clip(ch.summary,300)+(ch.doc&&docBrief(ch.doc)?"\nChapter plan notes: "+docBrief(ch.doc):"")+(dev.length?"\nThis chapter advances: "+dev.join("; "):"")+"\nScenes in this chapter:\n"+sib.map(x=>x.order+". "+x.title+": "+clip(x.id!==s.id&&D.byPlan[x.id]&&D.byPlan[x.id].summary?"(written) "+D.byPlan[x.id].summary:briefOf(x).situation,120)+(x.id===s.id?"  <== this scene":"")).join("\n")+"\n\nThis scene: "+s.title+"\n"+briefText(s)+"\nCharacters: "+((s.participants||[]).join(", ")||"as needed")}}
 async function bibleFor(n,s){
   const ents=await dbBy("entities","novelId",n.id),nm=(s.participants||[]).map(x=>x.toLowerCase()),out=[];
   for(const e of ents){if(nm.includes(e.name.toLowerCase())){const f=(await dbBy("facts","entityId",e.id)).filter(x=>x.status!=="superseded").slice(0,3).map(x=>x.text);out.push("- "+e.name+": "+clip(e.summary,200)+(f.length?" Facts: "+f.join("; "):"")+(isChar(e)&&profLive(e)?"\n  Profile: "+profFull(e.profile):""))}}
@@ -1450,7 +1472,7 @@ function kbTells(K,text){
   return out}
 const leakKey=l=>l.kind+"|"+l.propId+"|"+(l.who||"")+"|"+clip(l.detail,40);
 const dedupeLeaks=a=>{const s=new Set();return a.filter(l=>{const k=leakKey(l);if(s.has(k))return false;s.add(k);return true})};
-const issuesOf=q=>{q=q||{};const dm=new Set(q.dismissed||[]);return(q.purposeMet===false?1:0)+(q.changeMet===false?1:0)+arr0(q.leaks).filter(l=>!dm.has(leakKey(l))).length+(q.repeat||q.repeatsEarlier?1:0)+arr0(q.continuity).filter(c=>c.kind==="error"&&!dm.has(contKey(c))).length+(q.pov&&q.pov.off&&!dm.has("pov")?1:0)};
+const issuesOf=q=>{q=q||{};const dm=new Set(q.dismissed||[]);return arr0(q.leaks).filter(l=>!dm.has(leakKey(l))).length+(q.repeat||q.repeatsEarlier?1:0)+arr0(q.continuity).filter(c=>c.kind==="error"&&!dm.has(contKey(c))).length+(q.pov&&q.pov.off&&!dm.has("pov")?1:0)};
 /* knowledge rows follow written scenes (drafts included, marked draft): rewrite this scene's rows from its current check */
 async function syncKnowledge(rec){
   const all=await dbAll("knowledge"),ops=all.filter(k=>k.sceneId===rec.planId).map(k=>["del","knowledge",k.id]);
@@ -1474,7 +1496,7 @@ async function draftScene(n,D,s,note,X){
   const lastText=last?await textOf(D.byPlan[last.id]):"",tail=lastText?lastText.slice(-800).replace(/^\S*\s/,""):"",priors=[];
   for(const x of before.slice(-3))priors.push(await textOf(D.byPlan[x.id]));
   const LB=ledgerBlock(await ledgerCtx(n,D,s)); /* P2: where things stand, claims, time references, how the last scene ended */
-  const ctxPart=X.head+(bible.length?"\n\nStory bible:\n"+bible.join("\n"):"")+kbBlock(K)+LB+(X.prev.length?"\n\nWhat has happened just before:\n"+X.prev.join("\n"):"")
+  const ctxPart=X.head+(bible.length?"\n\nStory bible:\n"+bible.join("\n"):"")+await rulingsBlock(n)+kbBlock(K)+LB+(X.prev.length?"\n\nWhat has happened just before:\n"+X.prev.join("\n"):"")
    +(same.length?"\n\nAlready covered earlier in this chapter. Do not repeat or retell any of it:\n"+same.map(x=>"- "+clip(D.byPlan[x.id].summary,220)).join("\n"):"")
    +(tail?"\n\nThe previous scene ended with this passage. Continue from where it left off and do not retell it:\n\""+tail+"\"":"")
    +(done?"\n\nThe earlier scenes of this chapter already hold about "+done+" words. The whole chapter should come to about "+wr[0]+" to "+wr[1]+" words, so this scene carries what is left.":"");
@@ -1505,16 +1527,18 @@ async function finishScene(n,D,s,X,dr,note,auto){
       if(wc(nt)>=wc(text)*.6){const o2=await checkScene(n,D,s,X,nt,K);if(!o2.qa.checkFailed){text=nt;out=o2;rev=true}}
     }catch(e){}}
   const w=wc(text),now=Date.now(),vid=uid(),sid=rec0?rec0.id:uid(),still=!!(out.qa.style&&out.qa.style.off),stillP=!!(out.qa.pov&&out.qa.pov.off);
-  const stx=await recordScene(n,D,s,text); /* P1 stage 1: what this scene establishes */
+  const stx=await recordScene(n,D,s,text,dr.beats); /* P1 stage 1: what this scene establishes */
+  const cqN=stx.ok?await openConsCount(n,s,stx.ex,text):0; /* a scene that waits on a decision is never approved for you */
   const appF=stx.ok?await appFindings(n,D,s,stx.ex,text):[];
   const qa=Object.assign({avoid:checkAvoid(text,p.avoid),words:w,target:dr.W,range:dr.range||null,repeat:dr.rep.ratio>=REP?{pct:Math.round(dr.rep.ratio*100),retried:!!dr.rep.retried}:null},out.qa,{styleFixed:rev&&so&&!still,povFixed:rev&&po&&!stillP});
   qa.continuity=arr0(out.qa.continuity).concat(appF).slice(0,8);
   {const pt=await priorTexts(D,s,3);const gn=gestNotes(text,pt),on=openNote(text,pt);qa.gestures=gn;qa.opening=on}
   if(still)qa.style=Object.assign({},out.qa.style,{revised:rev});
   if(stillP)qa.pov=Object.assign({},out.qa.pov,{revised:rev});
-  const rec={id:sid,novelId:n.id,planId:s.id,chapterPlanId:X.ch.id,chOrder:X.ch.order,scOrder:s.order,status:(auto&&!issuesOf(qa)&&!qa.checkFailed&&stx.ok)?"approved":"drafted",currentVersionId:vid,summary:out.summary||clip(text,300),words:w,qa,beats:dr.beats||null,createdAt:rec0?rec0.createdAt:now,updatedAt:now};
+  const rec={id:sid,novelId:n.id,planId:s.id,chapterPlanId:X.ch.id,chOrder:X.ch.order,scOrder:s.order,status:(auto&&!issuesOf(qa)&&!qa.checkFailed&&stx.ok&&!cqN)?"approved":"drafted",currentVersionId:vid,summary:out.summary||clip(text,300),outcome:stx.ok?stx.ex.outcome:"",deviation:stx.ok?stx.ex.dev:null,words:w,qa,beats:dr.beats||null,createdAt:rec0?rec0.createdAt:now,updatedAt:now};
   await dbBatch([["scenes",rec],["scene_versions",{id:vid,sceneId:sid,text,model:dr.model,reason:rec0?"regenerate":"generate",note:clip(note,400),createdAt:now,words:w,qa}],["scene_state",stateRec(n,s,rec,vid,stx)]]);
   await syncKnowledge(rec);await syncLedger(rec);
+  if(stx.ok){try{await queueFromScene(n,D,s,rec,stx.ex,text)}catch(e){}}
   try{await applyScenePros(n,out.profiles,pf.need)}catch(e){}
   try{await applyProfUpdates(n,out.profUpdates,text,rec)}catch(e){}
   await dbDel("jobs_local","wr-"+n.id);return rec}
@@ -1527,7 +1551,7 @@ async function checkScene(n,D,s,X,text,K){
      +'\n\nReturn JSON: {"summary":"2 to 3 sentences of what actually happens","purposeMet":true,"changeMet":true,"repeatsEarlier":false,"issues":["contradictions with the plan or earlier scenes, new plot threads, or characters acting or speaking out of character or out of their profile; at most 4; empty if none"],"style":{"off":false,"what":""},"continuity":[{"kind":"error or mystery or conflict or unverified or possible","detail":"","against":"","evidence":""}],"pov":{"off":false,"what":""}'
      +(kb?',"learned":[{"proposition":"P1","holder":"character name or reader","stance":"knows or believes or suspects","via":"witnessed or overheard or document or confession or deduction or told","believedValue":"what they think, only if it differs from the truth"}],"leaks":[{"proposition":"P2","type":"character or reader","who":"name","detail":"one short sentence"}]':'')
      +(disc?',"profiles":[{"name":"","voice":"","wants":"","manner":"","ties":""}]':'')+(pf.lines.length?',"profileUpdates":[{"name":"","field":"voice or wants or manner or ties or beliefs or needs or flaws or reacts or decides or avoids or habits or history or arc","text":"","evidence":""}]':'')+(pf.lines.length>1?',"voices":{"alike":false,"what":""}':'')
-     +'}\nrepeatsEarlier is true only if this scene mostly retells events the earlier scenes already covered.'+CONT_RULE+" The author chose this point of view and tense: "+povCheckText(p,vp)+"."+POV_RULE
+     +'}\nrepeatsEarlier is true only if this scene mostly retells events the earlier scenes already covered. purposeMet is false only when the scene plainly ignores the situation and question in its brief. changeMet is false only when the brief expected movement and the scene shows none; a quiet scene that shifts mood, pressure or understanding counts as met. A scene that departs from the possible beats or finds a better moment is fine and is not an issue.'+CONT_RULE+" The author chose this point of view and tense: "+povCheckText(p,vp)+"."+POV_RULE
      +" The author chose these style settings: "+styleCheckText(p,pace)+". style.off is true only when the scene CLEARLY departs from them, for example ordinary actions given long description under lean or balanced description, stock atmospheric figures under sparse figurative language, lingering on intermediate steps or description under fast pacing, dialogue that mainly delivers background information or explains what both speakers already know, or characters explaining their own obvious feelings under minimal or moderate inner thoughts, or uncommon or showy vocabulary and hard-to-follow sentences under a plain or natural language level, or long runs of sentences that read as a list of actions, or emotion shown mainly through close-ups of faces and joints (jaw, knuckles, tendons) or odd, over-detailed body descriptions. Judge the dominant effect, not single sentences, and ordinary variation is fine. style.what is one short sentence naming the clearest departure, and empty when off is false."
      +(kb?' learned lists tracked facts that a character or the reader newly learns, believes or suspects in this scene. leaks lists tracked facts that a character states or acts on without having held them before this scene or learning them within it, and HIDDEN facts that the narration reveals to the reader early. Do not list deliberate misdirection or anything the scene plan itself calls for. Use empty arrays when there is nothing to list.':'')
      +(pf.lines.length?" profileUpdates lists only what this scene newly shows about a character that is not already in their profile above, or that contradicts it, with evidence copied exactly from the scene text. Most scenes have none, so return an empty array rather than restating the profile.":"")+(pf.lines.length>1?" voices.alike is true only when two speaking characters use the same vocabulary, directness and rhythm so that their lines could be swapped, and voices.what names them in one sentence.":"")
@@ -1692,7 +1716,7 @@ async function castCard(n,D){
   const s2=c.cast.length?c.ready+" of "+c.cast.length+" ready"+(c.waiting?", "+c.waiting+" waiting for approval":"")+(c.missing?", "+c.missing+" still to develop":"")+(c.incomplete?", "+c.incomplete+" need more detail (open them in Ledger, Characters)":""):"No named characters in the plan yet.";
   const s3=(cv.stopped?"Plan covered.":cv.first?"Not looked at yet.":cv.fresh.length+" new chapter"+(cv.fresh.length>1?"s":"")+" not covered.")+(kbP?" "+kbP+" waiting for approval.":"");
   const b3=(cv.stopped?"":kbBtn(cv))+(kbP>0?'<button class="btn ghost fit" data-do="kbapall">Approve all ('+kbP+')</button>':'');
-  return'<div class="card" style="margin-bottom:14px"><div class="card-title">Before you write</div><div class="card-sub" style="margin:2px 0 6px">'+(req?"Ending first needs the story bible and character profiles before writing. ":"Discovery: these are optional, and profiles fill in as you write. ")+intro+'</div>'
+  return'<div class="card" style="margin-bottom:14px"><div class="card-title">Before you write</div><div class="card-sub help" style="margin:2px 0 6px">'+(req?"Ending first needs the story bible and character profiles before writing. ":"Discovery: these are optional, and profiles fill in as you write. ")+intro+'</div>'
    +row(c.bible>0&&c.pendB===0,"Story bible",tg,s1,b1)+row(d2&&c.cast.length>0,"Character profiles",tg,s2,b2)+row(cv.stopped,"Knowledge","Optional",s3,b3)+'</div>'}
 /* Guided and Autonomous: press write and Nemesis prepares the cast first. Guided stops so the director approves in one tap. */
 async function prepCast(n,auto){
@@ -1781,7 +1805,7 @@ async function openExport(){
   const sk=m.skipped.length?'<div class="field-hint warn" style="margin:0 0 10px">'+m.skipped.length+' scene'+(m.skipped.length>1?'s are':' is')+' left out: '+m.skipped.slice(0,6).map(x=>"chapter "+x.ch+", scene "+x.sc+" ("+x.why+")").join("; ")+(m.skipped.length>6?" and "+(m.skipped.length-6)+" more":"")+'.</div>':'';
   openSheet('<div class="sheet-sticky-top"><div class="sheet-handle"></div><h2>Export manuscript</h2></div><p class="card-sub" style="margin:0 0 10px">'+m.chs.length+' chapter'+(m.chs.length>1?'s':'')+', '+m.scenes+' approved scene'+(m.scenes>1?'s':'')+', '+m.words+' words.</p>'+sk
    +'<div class="field"><label for="exA">Author name (optional)</label><input type="text" id="exA" value="'+esc(n.author||"")+'" placeholder="Shown on the title page"></div>'
-   +'<div class="field"><label>Format</label><div class="seg-control" data-pk="exF"><button type="button" data-v="docx" class="active">Word</button><button type="button" data-v="md">Markdown</button><button type="button" data-v="html">Web page</button></div><div class="field-hint">Word opens in Word, Google Docs and most phone editors. A web page can be printed or saved as PDF from the browser.</div></div>'
+   +'<div class="field"><label>Format</label><div class="seg-control" data-pk="exF"><button type="button" data-v="docx" class="active">Word</button><button type="button" data-v="md">Markdown</button><button type="button" data-v="html">Web page</button></div><div class="field-hint help">Word opens in Word, Google Docs and most phone editors. A web page can be printed or saved as PDF from the browser.</div></div>'
    +'<div class="btn-row"><button class="btn ghost" data-do="close">Cancel</button><button class="btn primary" data-do="expgo">Export</button></div>')}
 async function doExport(){
   const n=await dbGet("novels",S.novelId),m=await manuscript(n),a=$("#exA")?$("#exA").value.trim().slice(0,80):"",f=(($("[data-pk=exF] .active"))||{dataset:{v:"docx"}}).dataset.v;
@@ -1807,11 +1831,10 @@ async function floorGo(mode){
     for(;;){
       const D=await floorData(n),nx=nextOf(D);if(!nx){toast("Every approved scene is written.");break}
       if((n.autonomy||"guided")!=="handson"&&(n.planApproach||"ending")==="ending"&&profMissing(D.ents,nx).length){const okp=await prepCast(n,(n.autonomy||"guided")==="auto");if(!okp)break;continue}
-      const g=gateOf(n,D,nx);if(g){toast(g);break}
+      const g=await gateOf(n,D,nx);if(g){toast(g);break}
       const ch=D.co[nx.parentId],k=D.list.filter(x=>x.parentId===nx.parentId);
       fr.msg="Writing chapter "+ch.order+", scene "+nx.order+" of "+k.length;render();
       const rec=await writeScene(n,D,nx,undefined,auto);
-      if(auto&&rec.status==="drafted"){toast("Stopped: this scene needs your review.");break}
       if(fr.stop||mode==="scene")break;
       const D2=await floorData(n),n2=nextOf(D2);if(!n2)break;
       if(mode==="chapter"&&n2.parentId!==nx.parentId)break}
@@ -1820,15 +1843,15 @@ async function floorGo(mode){
 const STP=r=>!r?'<span class="pill neutral">Not written</span>':'<span class="pill '+(r.status==="approved"?"canon":"voice")+'">'+(r.status==="approved"?"Approved":"Drafted")+'</span>';
 async function floorTab(n){
   const D=await floorData(n),tier=n.autonomy||"guided",P=h=>'<div class="section-pad">'+h+'</div>';
-  if(!D.list.length)return'<div class="empty-state">'+icon("sparkles",30)+'<h3>Nothing to write yet</h3><p>Approve some chapters in Plan first. In Guided and Autonomous, chapter plans are approved for you.</p></div>';
+  if(!D.list.length)return'<div class="empty-state">'+icon("sparkles",30)+'<h3>Nothing to write yet</h3><p>Approve some chapters in Plan first. In Collaborative and Autonomous, chapter plans are approved for you.</p></div>';
   if(!n.proseSet)return P('<div class="bf-hero"><div class="bf-meta"><span class="pill voice">First</span></div><p class="bf-concept" style="font-size:14px">Set your prose preferences before Nemesis writes. They shape every scene, and your own writing sample helps it avoid sounding like AI.</p><button class="btn primary" data-do="goprose" style="width:100%;margin-top:12px">Set prose preferences</button><button class="btn ghost" data-do="usedef" style="width:100%;margin-top:8px">Use the defaults for now</button></div>');
-  const recs=D.list.map(s=>D.byPlan[s.id]).filter(r=>r&&r.currentVersionId),words=recs.reduce((a,r)=>a+(r.words||0),0),dr=recs.filter(r=>r.status==="drafted").length,nx=nextOf(D),gt=nx?gateOf(n,D,nx):"";
-  const lab=tier==="handson"?"Write next scene":tier==="guided"?"Write chapter "+(nx?D.co[nx.parentId].order:""):"Start writing";
-  let h=await jobBanner(n,D)+await castCard(n,D)+'<div class="bf-hero"><div class="bf-meta"><span class="pill canon">'+recs.length+' of '+D.list.length+' scenes written</span>'+(dr?'<span class="pill voice">'+dr+' to review</span>':'')+'</div><div class="bf-prog"><div class="bf-prog-top"><span>'+words+' words so far</span><span>'+cap(tier==="auto"?"autonomous":tier==="handson"?"hands-on":tier)+'</span></div><div class="bf-bar"><i style="width:'+Math.round(recs.length/D.list.length*100)+'%"></i></div></div>'
+  const recs=D.list.map(s=>D.byPlan[s.id]).filter(r=>r&&r.currentVersionId),words=recs.reduce((a,r)=>a+(r.words||0),0),dr=recs.filter(r=>r.status==="drafted").length,nx=nextOf(D),gt=nx?await gateOf(n,D,nx):"";
+  const lab=tier==="auto"?"Keep writing":"Write chapter "+(nx?D.co[nx.parentId].order:"");
+  let h=await jobBanner(n,D)+await castCard(n,D)+'<div class="bf-hero"><div class="bf-meta"><span class="pill canon">'+recs.length+' of '+D.list.length+' scenes written</span>'+(dr?'<span class="pill voice">'+dr+' to review</span>':'')+'</div><div class="bf-prog"><div class="bf-prog-top"><span>'+words+' words so far</span><span>'+TIERS[tier][0]+'</span></div><div class="bf-bar"><i style="width:'+Math.round(recs.length/D.list.length*100)+'%"></i></div></div>'
    +(fr.on?'<p class="bf-concept" style="font-size:14px"><span class="spinner dark"></span> '+esc(fr.msg||"Working")+'</p><button class="btn ghost" data-do="floorstop" style="width:100%;margin-top:10px">Stop after this scene</button>'
-    :nx?'<p class="bf-concept" style="font-size:14px">Next: chapter '+D.co[nx.parentId].order+', scene '+nx.order+': '+esc(nx.title)+'</p>'+kbWriteHint(n,D,nx)+(gt?'<p class="bf-note" style="margin:8px 0 0">'+esc(gt)+'</p>':'<button class="btn primary" data-do="floorgo" data-id="'+(tier==="handson"?"scene":tier==="guided"?"chapter":"auto")+'" style="width:100%;margin-top:12px">'+lab+'</button>')
+    :nx?'<p class="bf-concept" style="font-size:14px">Next: chapter '+D.co[nx.parentId].order+', scene '+nx.order+': '+esc(nx.title)+'</p>'+kbWriteHint(n,D,nx)+(gt?'<p class="bf-note" style="margin:8px 0 0">'+esc(gt)+'</p>':'<button class="btn primary" data-do="floorgo" data-id="'+(tier==="auto"?"auto":"chapter")+'" style="width:100%;margin-top:12px">'+lab+'</button><button class="btn ghost" data-do="floorgo" data-id="scene" style="width:100%;margin-top:8px">Write one scene</button>')
     :'<p class="bf-concept" style="font-size:14px">Every approved scene is written.</p>')+'</div>';
-  h+=await stateCard(n,D);h+=povCard(n,D);h+=msCard(D);
+  h+=await queueCard(n,D);h+=await stateCard(n,D);h+=povCard(n,D);h+=msCard(D);
   let chs=D.chs.filter(c=>D.list.some(s=>s.parentId===c.id&&D.byPlan[s.id]&&D.byPlan[s.id].currentVersionId)).sort((a,b)=>b.order-a.order);
   if(chs.length){const tot=chs.length,show=floorAll?chs:chs.slice(0,20);
     h+='<div class="bf-h"><h2>Written<span class="count-pill">'+tot+'</span></h2></div>'+show.map(c=>{
@@ -1846,8 +1869,8 @@ async function openScene(pid){
   openSheet('<div class="sheet-sticky-top"><div class="sheet-handle"></div><h2>Chapter '+D.co[s.parentId].order+', scene '+s.order+'</h2></div>'
    +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">'+STP(rec)+'<span class="card-sub" style="margin:0">'+wc(cur.text)+' words'+(q.range?' of about '+q.range[0]+' to '+q.range[1]:q.target?' of about '+q.target:'')+'</span></div>'
    +((q.avoid||[]).length?'<div class="field-hint warn" style="margin:0 0 8px">Avoid-list hits: '+q.avoid.map(a=>esc(a.p)+(a.n>1?' x'+a.n:'')).join(", ")+'</div>':'')
-   +(q.purposeMet===false?'<div class="field-hint warn" style="margin:0 0 8px">The scene may not achieve its purpose.</div>':'')+(q.changeMet===false?'<div class="field-hint warn" style="margin:0 0 8px">Nothing may change by the end of the scene.</div>':'')
-   +qaExtra(q,pid)+stH+(arr0(q.issues).length?'<div class="field-hint warn" style="margin:0 0 8px">'+arr0(q.issues).map(esc).join("<br>")+'</div>':'')
+   +(q.purposeMet===false||q.changeMet===false?'<div class="field-hint" style="margin:0 0 8px">Against the brief: the check felt this scene may not do what was set out. This is advice only. Read it and decide.</div>':'')+(devOf(rec)?'<div class="field-hint" style="margin:0 0 8px"><b>Departs from the plan ('+esc(rec.deviation.level)+').</b> '+esc(rec.deviation.what)+(has(rec.deviation.why)?' Why: '+esc(rec.deviation.why):'')+' Recorded, not an error.</div>':'')+(has(rec.outcome)?'<div class="field-hint" style="margin:0 0 8px">What changed: '+esc(rec.outcome)+'</div>':'')
+   +(rec.rework?'<div class="field-hint warn" style="margin:0 0 8px"><b>Your decision.</b> '+esc(rec.rework.text)+' Regenerate this scene and Nemesis will follow it.</div>':'')+qaExtra(q,pid)+stH+(arr0(q.issues).length?'<div class="field-hint warn" style="margin:0 0 8px">'+arr0(q.issues).map(esc).join("<br>")+'</div>':'')
    +(q.checkFailed?'<div class="field-hint" style="margin:0 0 8px">The AI check did not run. <button class="btn ghost fit" data-do="screcheck" data-id="'+pid+'">Re-check</button></div>':'')
    +beatsHtml(rec,pid)+'<div class="field"><textarea id="scT" rows="14" style="line-height:1.55">'+esc(cur.text)+'</textarea></div>'
    +'<div class="field"><label for="scN">Note for the writer</label><input type="text" id="scN" placeholder="Optional, for example: darker"></div>'
@@ -1942,15 +1965,15 @@ async function openProp(id){
   openSheet('<div class="sheet-sticky-top"><div class="sheet-handle"></div><h2>'+(id?"Tracked fact":"New tracked fact")+'</h2></div>'
    +'<div class="field"><label for="pX">The fact</label><textarea id="pX" rows="3"'+(id?'':' data-autofocus')+'>'+esc(p.text)+'</textarea></div>'
    +'<div class="field"><label>Is it true in the story</label>'+seg("truth",TRUTHS,p.truth)+'</div>'
-   +'<div class="field"><label for="pR">Planned reveal chapter</label><input type="text" inputmode="numeric" id="pR" value="'+(p.plannedRevealChapter||"")+'"><div class="field-hint">Empty means no reveal is planned yet, so it stays hidden.</div></div>'
-   +'<div class="field"><label for="pT">Giveaway words</label><input type="text" id="pT" value="'+esc(arr0(p.tells).join(", "))+'"><div class="field-hint">Optional, separated by commas. A hidden fact is flagged if one of these appears before its reveal.</div></div>'
-   +'<label class="link-toggle-row"><span class="link-toggle-label">Deliberate misdirection</span><input type="checkbox" id="pD"'+(p.deceptive?" checked":"")+'></label><div class="field-hint" style="margin:6px 0 16px">The story may mislead the reader about this on purpose. It will not be flagged.</div>'
+   +'<div class="field"><label for="pR">Planned reveal chapter</label><input type="text" inputmode="numeric" id="pR" value="'+(p.plannedRevealChapter||"")+'"><div class="field-hint help">Empty means no reveal is planned yet, so it stays hidden.</div></div>'
+   +'<div class="field"><label for="pT">Giveaway words</label><input type="text" id="pT" value="'+esc(arr0(p.tells).join(", "))+'"><div class="field-hint help">Optional, separated by commas. A hidden fact is flagged if one of these appears before its reveal.</div></div>'
+   +'<label class="link-toggle-row"><span class="link-toggle-label">Deliberate misdirection</span><input type="checkbox" id="pD"'+(p.deceptive?" checked":"")+'></label><div class="field-hint help" style="margin:6px 0 16px">The story may mislead the reader about this on purpose. It will not be flagged.</div>'
    +(id&&p.status==="proposed"&&arr0(p.seed).length?'<div class="field-hint" style="margin:0 0 16px">Starts known by: '+arr0(p.seed).map(x=>esc(x.holder)+" "+esc(x.stance)).join(", ")+'. Added when you approve.</div>':'')
    +(id?'<div class="field"><label>Who holds it</label>'+(rows.map(k=>'<div class="kb-row"><div style="flex:1;min-width:0"><b>'+esc(k.holderName)+'</b> '+k.stance+(k.stance==="believes"&&has(k.believedValue)?", thinks: "+esc(k.believedValue):"")+'<div class="field-hint" style="margin:2px 0 0">'+(k.via?(VIAS.find(v=>v[0]===k.via)||[0,k.via])[1]+" · ":"")+whenLbl(k)+'</div></div>'+(k.sceneId?'':'<button class="tb-btn" data-do="kbdelrow" data-id="'+k.id+'" aria-label="Remove this holder">'+icon("close",14)+'</button>')+'</div>').join("")||'<div class="field-hint">Nobody holds it yet.</div>')+'</div>'
     +'<div class="field"><label for="kH">Add a holder</label><select id="kH"><option value="reader">Reader</option>'+ents.map(e=>'<option value="'+e.id+'">'+esc(e.name)+'</option>').join("")+'</select></div>'
     +'<div class="field">'+seg("stance",STANCES,"knows")+'</div>'
     +'<div class="field"><label for="kV">How it reached them</label><select id="kV">'+VIAS.map(v=>'<option value="'+v[0]+'">'+v[1]+'</option>').join("")+'</select></div>'
-    +'<div class="field"><label for="kC">From chapter</label><input type="text" inputmode="numeric" id="kC"><div class="field-hint">Empty means from the start of the story.</div></div>'
+    +'<div class="field"><label for="kC">From chapter</label><input type="text" inputmode="numeric" id="kC"><div class="field-hint help">Empty means from the start of the story.</div></div>'
     +'<div class="field"><label for="kB">What they think, if it differs from the truth</label><input type="text" id="kB"></div>'
     +'<div class="btn-row"><button class="btn ghost" data-do="kbaddrow" data-id="'+id+'">Add holder</button></div>':'')
    +'<div class="btn-row">'+(id?(p.status==="proposed"?'<button class="btn ghost" data-do="kbno" data-id="'+id+'">Reject</button>':'<button class="btn danger" data-do="kbdel" data-id="'+id+'">Delete</button>'):'<button class="btn ghost" data-do="close">Discard</button>')+'<button class="btn primary" data-do="kbsave" data-id="'+(id||"")+'">'+(id?"Save":"Add fact")+'</button></div>'
@@ -2064,7 +2087,9 @@ function normExtract(d){
     time:a("time").map(x=>({text:c(x&&x.text,160),about:c(x&&x.about,80),ev:ev(x)})).filter(x=>x.text).slice(0,LCAP.time),
     questions:a("questions").map(x=>c(x&&typeof x==="object"?x.text:x,200)).filter(Boolean).slice(0,LCAP.question),
     people:a("people").map(x=>c(x&&typeof x==="object"?x.name:x,60)).filter(Boolean).slice(0,LCAP.people),
-    ending:c(d&&d.ending,400)};
+    ending:c(d&&d.ending,400),
+    dev:(()=>{const d0=d&&d.deviation||{},lv=["none","minor","major"].includes(d0.level)?d0.level:"none";return{level:lv,what:lv==="none"?"":c(d0.what,200),why:lv==="none"?"":c(d0.why,200)}})(),outcome:c(d&&d.outcome,220),
+    cons:a("consequences").map(x=>({type:CONS[x&&x.type]?x.type:"",who:c(x&&x.who,60),what:c(x&&x.what,200),ev:ev(x)})).filter(x=>x.type&&x.what).slice(0,4)};
   return o}
 const exCount=x=>x?["places","objects","events","relations","claims","time","questions"].reduce((a,k)=>a+arr0(x[k]).length,0):0;
 /* stage 2: the extraction becomes ledger rows. Ids are derived from the content, so the same item can never be stored twice for a scene. */
@@ -2093,16 +2118,16 @@ async function standingLines(n,so){
   const rows=(await dbBy("ledger","novelId",n.id)).filter(r=>(r.kind==="place"||r.kind==="object")&&r.storyOrder<so&&r.review!=="dismissed"&&r.review!=="rejected"),latest=new Map();
   rows.sort((a,b)=>a.storyOrder-b.storyOrder).forEach(r=>latest.set(r.kind+"|"+nrm(r.subject),r));
   return[...latest.values()].slice(-14).map(r=>"- "+r.subject+": "+r.text)}
-const EXSCHEMA='{"places":[{"who":"","where":"","evidence":""}],"objects":[{"item":"","holder":"","state":"","evidence":""}],"events":[{"what":"","who":[""],"evidence":""}],"relations":[{"a":"","b":"","change":"","evidence":""}],"claims":[{"speaker":"","text":"","status":"claimed","evidence":""}],"time":[{"text":"","about":"","evidence":""}],"questions":[""],"people":[""],"ending":""}';
+const EXSCHEMA='{"places":[{"who":"","where":"","evidence":""}],"objects":[{"item":"","holder":"","state":"","evidence":""}],"events":[{"what":"","who":[""],"evidence":""}],"relations":[{"a":"","b":"","change":"","evidence":""}],"claims":[{"speaker":"","text":"","status":"claimed","evidence":""}],"time":[{"text":"","about":"","evidence":""}],"questions":[""],"people":[""],"ending":"","consequences":[{"type":"","who":"","what":"","evidence":""}],"deviation":{"level":"none","what":"","why":""},"outcome":""}';
 /* stage 1 */
-async function recordScene(n,D,s,text){
+async function recordScene(n,D,s,text,beats0){
   try{
     const ents=D.ents||await dbBy("entities","novelId",n.id),idx=D.list.findIndex(x=>x.id===s.id),prevS=D.list.slice(0,idx).reverse().find(x=>D.byPlan[x.id]&&D.byPlan[x.id].currentVersionId),pst=prevS?await dbGet("scene_state",prevS.id):null,so=D.co[s.parentId].order*1000+s.order,stand=await standingLines(n,so);
-    const cast=ents.filter(isChar).map(e=>e.name),places=ents.filter(e=>e.kind==="places").map(e=>e.name);
+    const cast=ents.filter(isChar).map(e=>e.name),places=ents.filter(e=>e.kind==="places").map(e=>e.name),prot=await protectedLines(n);
     const r=await generateJson("Task: Record the scene.\nRecord what this scene establishes so the novel's records stay accurate. Record only what the scene itself shows or says. Never invent, never explain, never resolve a mystery. What a character says is a claim, not a fact, unless the narration itself confirms it. Use the exact name from the cast list when a listed person is meant, and any other named person exactly as written in the scene. Name the narrator by name. For each item give a short evidence quote copied word for word from the scene (under 25 words), or an empty string if there is none.\n\nCast: "+(cast.join(", ")||"(none listed)")+"\nPlaces: "+(places.join(", ")||"(none listed)")
      +(pst&&pst.ending?"\n\nHow the previous scene ended: "+pst.ending:"")+(stand.length?"\n\nRecorded so far (latest state):\n"+stand.join("\n"):"")
      +"\n\nScene (chapter "+D.co[s.parentId].order+", "+s.title+"):\n"+clip(text,9000)
-     +"\n\nReturn JSON: "+EXSCHEMA+"\nplaces: where each named character is when the scene ends. objects: important objects, documents and evidence, and who holds each or where it is when the scene ends. events: the key things that happen, one sentence each. relations: relationships that start, change or end. claims: statements about the past or about others that matter to the plot; status is claimed, confirmed (the narration confirms it) or disputed (contradicted in the scene). time: every date, age, duration or time reference as written, with who or what it is about. questions: questions the scene leaves open. people: every named person in the scene. ending: one or two sentences saying where everyone is, what they hold and what is unresolved when the scene ends. Use empty lists where there is nothing.",
+     +planForRecord(s,{beats:beats0||(D.byPlan[s.id]&&D.byPlan[s.id].beats)})+consBlock(prot)+"\n\nReturn JSON: "+EXSCHEMA+"\nplaces: where each named character is when the scene ends. objects: important objects, documents and evidence, and who holds each or where it is when the scene ends. events: the key things that happen, one sentence each. relations: relationships that start, change or end. claims: statements about the past or about others that matter to the plot; status is claimed, confirmed (the narration confirms it) or disputed (contradicted in the scene). time: every date, age, duration or time reference as written, with who or what it is about. questions: questions the scene leaves open. people: every named person in the scene. ending: one or two sentences saying where everyone is, what they hold and what is unresolved when the scene ends. Use empty lists where there is nothing."+DEVRULE+CONS_RULE,
      {system:SYS_C,temperature:.2,timeoutMs:90000});
     const ex=normExtract(r.data);
     if(!exCount(ex)&&!ex.ending)return{ok:false,err:"Gemini returned no records for this scene",model:r.model};
@@ -2111,7 +2136,7 @@ async function recordScene(n,D,s,text){
 const stateRec=(n,s,rec,vid,r)=>stamp({id:s.id,novelId:n.id,sceneId:s.id,recId:rec.id,versionId:vid,storyOrder:rec.chOrder*1000+rec.scOrder,status:r.ok?"recorded":"failed",extract:r.ok?r.ex:null,ending:r.ok?r.ex.ending:"",error:r.ok?"":clip(r.err,200),model:r.model||"",at:Date.now()});
 async function rerecord(pid){
   const {n,D,s,rec,cur}=await sceneCur(pid);if(!rec||!cur)return false;
-  const r=await recordScene(n,D,s,cur.text);await dbBatch([["scene_state",stateRec(n,s,rec,cur.id,r)]]);await syncLedger(rec);return r.ok}
+  const r=await recordScene(n,D,s,cur.text);await dbBatch([["scene_state",stateRec(n,s,rec,cur.id,r)]]);await syncLedger(rec);if(r.ok){rec.outcome=r.ex.outcome;rec.deviation=r.ex.dev;try{await dbPut("scenes",rec)}catch(e){}try{await queueFromScene(n,D,s,rec,r.ex,cur.text)}catch(e){}}return r.ok}
 const stFresh=(st,rec)=>!!(st&&st.status==="recorded"&&rec&&st.versionId===rec.currentVersionId);
 async function syncAll(rec){
   await syncKnowledge(rec);
@@ -2146,10 +2171,7 @@ async function openState(){
    +'<div class="field-hint" style="margin:0 0 10px">Recorded from written scenes, drafts included. Each item names the scene it came from and what kind of record it is. A character\'s claim stays a claim until the story confirms it. Tap Not true to take a wrong record out of memory.</div>'
    +'<div class="seg-control" style="margin-bottom:10px;flex-wrap:wrap">'+LKINDS.filter(k=>cnt[k[0]]||k[0]===stView.kind).map(chip).join("")+'</div>'
    +(sub?'<div class="btn-row" style="margin:0 0 8px"><button class="btn ghost fit" data-do="stall">'+(stView.all?'Show latest only':'Show full history')+'</button></div>':'')
-   +(list.length?list.map(r=>{const p=STPILL[r.status]||["neutral",r.status];
-     return'<div style="padding:10px 0;border-top:1px solid var(--border-soft)"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px"><span class="pill '+p[0]+'">'+p[1]+'</span><span class="card-sub" style="margin:0">'+whereLbl(r.storyOrder)+(r.subject?' · '+esc(r.subject):'')+' · '+esc(CLSL[r.cls||"established"])+'</span>'+(r.draft?'<span class="pill neutral">Draft</span>':'')+(r.stale?'<span class="pill alert">Out of date</span>':'')+(r.review==="rejected"?'<span class="pill alert">Not true</span>':'')+'</div><div'+(r.review==="rejected"?' style="opacity:.55;text-decoration:line-through"':'')+'>'+esc(r.text)+'</div>'
-      +(r.evidence?'<div class="field-hint" style="margin:4px 0 0">“'+esc(r.evidence)+'”</div>':'')+(r.why?'<div class="field-hint warn" style="margin:4px 0 0">'+esc(r.why)+'</div>':'')
-      +(r.review==="rejected"?'<div class="btn-row" style="margin-top:8px"><button class="btn ghost fit" data-do="stback" data-id="'+esc(r.id)+'">Put back</button></div>':r.review!=="pending"?'<div class="btn-row" style="margin-top:8px"><button class="btn ghost fit" data-do="stwrong" data-id="'+esc(r.id)+'">Not true</button></div>':'')+(r.review==="pending"?'<div class="btn-row" style="margin-top:8px;flex-wrap:wrap">'+(r.kind==="person"?'<button class="btn primary fit" data-do="stadd" data-k="characters" data-id="'+esc(r.id)+'">Add as character</button><button class="btn ghost fit" data-do="stadd" data-k="places" data-id="'+esc(r.id)+'">Add as place</button>':'')+'<button class="btn ghost fit" data-do="stdismiss" data-id="'+esc(r.id)+'">Mark as deliberate</button><button class="btn ghost fit" data-do="fsc" data-id="'+esc(r.sceneId)+'">Open scene</button></div>':'')+'</div>'}).join(""):'<div class="field-hint">Nothing of this kind is recorded yet.</div>')
+   +(list.length?list.map(stRow).join(""):'<div class="field-hint">Nothing of this kind is recorded yet.</div>')
    +'<div class="btn-row" style="margin-top:14px"><button class="btn ghost" data-do="close">Close</button></div>')}
 async function sceneStateHtml(rec,pid){
   const st=await dbGet("scene_state",pid),rows=await dbBy("ledger","sceneId",pid),btn=l=>' <button class="btn ghost fit" data-do="strec1" data-id="'+pid+'">'+l+'</button>';
@@ -2291,7 +2313,7 @@ async function planStanding(n){
 function chapterPrompt(ctx,all,n,k,brief){
   const dv=okd(all,3).length,sr=sceneRange(n),x=CPD[pacingOf(n)],prev=beforeChapter(all,k).filter(c=>c.status==="approved"||c.status==="developing").slice(-1)[0];
   const pe=prev?"\n\nThe previous chapter, chapter "+prev.order+", ended with: "+(prev.doc&&has(prev.doc.ending)?prev.doc.ending:clip(prev.summary,300))+" Chapter "+k+" must open from that state: same people, places, time and what they know.":"";
-  return ctx+pe+"\n\nTask: Plan chapter "+k+" only. Do not plan any other chapter. It will be about "+cw(n)+" words, so give it "+sr[0]+" to "+sr[1]+" scenes. It is advanced by one or two listed developments (\"develops\"), using the D labels exactly as listed, for example \"D3\", and each development should last about "+x+" chapters. Do not conclude the novel unless this chapter reaches the planned ending. Within the chapter every scene must cover a different moment or event. The purpose of a scene should come from what a character wants, fears or is trying to do, and any information the reader needs should arrive as a result of that, not as the purpose itself: avoid purposes such as X explains Y to Z. Give each supporting character in a scene an aim of their own. Plan characters from their profiles in the story bible. Return JSON: {\"chapter\":{\"title\":\"\",\"summary\":\"objective and progression in 2 sentences\",\"develops\":[\"D labels this chapter advances\"],\"purpose\":\"what the chapter must achieve\",\"opening\":\"how it opens, consistent with how the previous chapter ended\",\"ending\":\"the state of things when it ends: who is where, what changed, what is unresolved\",\"events\":[\"key events in order\"],\"objectives\":[{\"character\":\"\",\"wants\":\"\",\"development\":\"how they change or what they learn\"}],\"revelations\":[\"what the reader or a character learns here\"],\"threads\":[\"story threads opened or advanced\"],\"questions\":[\"questions left open at the end\"],\"timeline\":\"when it happens relative to the previous chapter\",\"dependencies\":[\"earlier events or facts it relies on\"],\"scenes\":[{\"title\":\"\",\"purpose\":\"what the scene must achieve\",\"change\":\"what is different by the end of the scene\",\"participants\":[\"character names\"]}]}}"
+  return ctx+pe+"\n\nTask: Plan chapter "+k+" only. Do not plan any other chapter. It will be about "+cw(n)+" words, so give it "+sr[0]+" to "+sr[1]+" scenes. It is advanced by one or two listed developments (\"develops\"), using the D labels exactly as listed, for example \"D3\", and each development should last about "+x+" chapters. Do not conclude the novel unless this chapter reaches the planned ending. Within the chapter every scene must cover a different moment or event. The purpose of a scene should come from what a character wants, fears or is trying to do, and any information the reader needs should arrive as a result of that, not as the purpose itself: avoid purposes such as X explains Y to Z. Give each supporting character in a scene an aim of their own. Plan characters from their profiles in the story bible. Return JSON: {\"chapter\":{\"title\":\"\",\"summary\":\"objective and progression in 2 sentences\",\"develops\":[\"D labels this chapter advances\"],\"purpose\":\"what the chapter must achieve\",\"opening\":\"how it opens, consistent with how the previous chapter ended\",\"ending\":\"the state of things when it ends: who is where, what changed, what is unresolved\",\"events\":[\"key events in order\"],\"objectives\":[{\"character\":\"\",\"wants\":\"\",\"development\":\"how they change or what they learn\"}],\"revelations\":[\"what the reader or a character learns here\"],\"threads\":[\"story threads opened or advanced\"],\"questions\":[\"questions left open at the end\"],\"timeline\":\"when it happens relative to the previous chapter\",\"dependencies\":[\"earlier events or facts it relies on\"],\"scenes\":[{\"title\":\"\",\"situation\":\"where things stand and who is in play\",\"question\":\"the dramatic question this scene explores\",\"intentions\":\"what the main characters are each after\",\"pressure\":\"what pushes on them\",\"stakes\":\"what could be lost or gained\",\"movement\":\"where the scene may end up, or empty for a quiet scene\",\"bounds\":\"what this scene must not do or resolve\",\"participants\":[\"character names\"]}]}}"
    +(brief?" Keep every field to one short sentence or a few words, and list at most 4 items per list. The chapter must list at least one development label in \"develops\".":"")}
 /* validation: code rules first, then one AI call. An error needs something real to point at, otherwise it is only a possible problem. */
 const quoteIn=(q,ctx)=>{const a=nrm(String(q||"")).replace(/\s+/g," ").trim().slice(0,60),b=nrm(ctx).replace(/\s+/g," ");return a.length>=8&&b.includes(a)};
@@ -2304,12 +2326,12 @@ function chapterCodeChecks(ch,kids,prev,ents){
   if(d&&!(d.events||[]).length)add("possible","No key events are listed.");
   const seen=new Set();
   kids.forEach(s=>{(s.participants||[]).forEach(nm=>{const k=String(nm).trim().toLowerCase();if(seen.has(k))return;seen.add(k);if(!ents.some(e=>sameNm(e.name,nm)))add("possible",nm+" appears in a scene but is not in the story bible. The cast can grow, so add them when you are happy with it.")});
-    if(!has(s.change))add("possible","Scene "+s.order+", \""+clip(s.title,40)+"\", does not define what changes.")});
+    if(!has(s.summary)&&!has(briefOf(s).situation))add("possible","Scene "+s.order+", \""+clip(s.title,40)+"\", has no situation yet.")});
   prev.forEach(c=>{if(simText(ch.summary,c.summary)>=SIMK)add("error","The summary repeats chapter "+c.order+" almost word for word.","Chapter "+c.order+": "+clip(c.summary,160))});
   return f}
 async function validateChapter(n,ch,kids,prev,ents,all){
   const code=chapterCodeChecks(ch,kids,prev,ents),at=Date.now(),pv=prev.slice(-3).map(c=>"Chapter "+c.order+": "+clip(c.summary,200)+(c.doc?"\n"+docFull(c.doc):"")).join("\n"),
-   me="Chapter "+ch.order+": "+ch.title+"\n"+ch.summary+(ch.doc?"\n"+docFull(ch.doc):"")+"\nScenes:\n"+kids.map(s=>s.order+". "+s.title+": "+clip(s.summary,160)+" Changes: "+clip(s.change,100)).join("\n"),
+   me="Chapter "+ch.order+": "+ch.title+"\n"+ch.summary+(ch.doc?"\n"+docFull(ch.doc):"")+"\nScenes:\n"+kids.map(s=>s.order+". "+s.title+": "+clip(s.summary,160)+(has(s.change)?" Ends: "+clip(s.change,100):"")).join("\n"),
    ctx=pv+"\n"+me;
   try{
     const r=await generateJson("Task: Validate the chapter plan.\nEarlier chapters:\n"+(pv||"(none yet)")+"\n\nThe chapter to check:\n"+me
@@ -2328,7 +2350,7 @@ function chCheckHtml(ch){
   return h+'<div class="btn-row"><button class="btn ghost" data-do="chvalid" data-id="'+ch.id+'">Validate again</button></div>'}
 function chDocFields(x){
   const d=x.doc||{};
-  return DOCL.map(r=>'<div class="field"><label for="pd_'+r[0]+'">'+r[1]+'</label><textarea id="pd_'+r[0]+'" rows="'+(r[2]==="l"?3:2)+'">'+esc(r[2]==="l"?arr0(d[r[0]]).join("\n"):(d[r[0]]||""))+'</textarea>'+(r[2]==="l"?'<div class="field-hint">One per line.</div>':'')+'</div>').join("")
+  return DOCL.map(r=>'<div class="field"><label for="pd_'+r[0]+'">'+r[1]+'</label><textarea id="pd_'+r[0]+'" rows="'+(r[2]==="l"?3:2)+'">'+esc(r[2]==="l"?arr0(d[r[0]]).join("\n"):(d[r[0]]||""))+'</textarea>'+(r[2]==="l"?'<div class="field-hint help">One per line.</div>':'')+'</div>').join("")
    +(arr0(d.objectives).length?'<div class="field"><label>What the characters want</label>'+d.objectives.map(o=>'<div class="field-hint" style="margin:0 0 6px"><b>'+esc(o.character)+'</b> wants '+esc(o.wants)+(has(o.development)?". "+esc(o.development):"")+'</div>').join("")+'</div>':'')}
 function readDoc(x){
   const d=Object.assign({},x.doc||{});
@@ -2394,7 +2416,7 @@ const CORE4=[["voice","How they speak"],["wants","What they want"],["manner","Ho
 const pfk=kind=>kind==="characters"?CORE4.concat(DEEP.map(r=>[r[0],r[1]])):(DEEPK[kind]||[]).map(r=>[r[0],r[1]]);
 const profVal=(q,k)=>(q&&(["voice","wants","manner","ties"].includes(k)?q[k]:(q.deep||{})[k]))||"";
 function deepFieldsHtml(q,list,title,hint){
-  return '<div class="field" style="margin:14px 0 6px"><label>'+(title||'Deeper profile (optional)')+'</label><div class="field-hint">'+(hint||'Beliefs, needs, flaws and how they act under pressure. Both the planner and the Writer read this. It never blocks writing.')+'</div></div>'
+  return '<div class="field" style="margin:14px 0 6px"><label>'+(title||'Deeper profile (optional)')+'</label><div class="field-hint help">'+(hint||'Beliefs, needs, flaws and how they act under pressure. Both the planner and the Writer read this. It never blocks writing.')+'</div></div>'
    +(list||DEEP).map(r=>'<div class="field"><label for="eD_'+r[0]+'">'+r[1]+'</label><textarea id="eD_'+r[0]+'" rows="2" maxlength="240" placeholder="'+r[2]+'">'+esc((q.deep||{})[r[0]]||"")+'</textarea></div>').join("")}
 const readDeep=list=>{const d={};(list||DEEP).forEach(r=>{const e=$("#eD_"+r[0]);if(e){const v=clip(e.value,240);if(has(v))d[r[0]]=v}});return d};
 /* proposed changes from the writing. Nothing is applied until the director says so. */
@@ -2471,7 +2493,7 @@ function p4Notes(q){
 const deepText=(q,kind,max)=>clip(pfk(kind).filter(r=>has((q&&q.deep||{})[r[0]])).map(r=>r[1]+": "+q.deep[r[0]]).join(". "),max||9999);
 /* Beat step. One extra call before the prose: the scene as 5 to 8 beats, each tied to what someone wants. Edited beats are reused. A failure never blocks writing. */
 const normBeats=(d,model)=>{
-  const list=arr0(d&&d.beats).map(b=>b&&has(b.what)?clip(b.what,200)+(has(b.character)?" (Drive: "+clip(b.character,80)+")":"")+(has(b.carries)?" Delivers: "+clip(b.carries,140)+".":""):"").filter(has).slice(0,8);
+  const list=arr0(d&&d.beats).map(b=>b&&has(b.what)?clip(b.what,200)+(has(b.character)?" (Drive: "+clip(b.character,80)+")":"")+(has(b.carries)?" Could carry: "+clip(b.carries,140)+".":""):"").filter(has).slice(0,8);
   if(list.length<2)return null;
   return{list,feel:clip(d.feel,160),voices:arr0(d.voices).map(v=>v&&has(v.name)&&has(v.sound)?clip(v.name,40)+": "+clip(v.sound,160):"").filter(has).slice(0,6),edited:false,model:model||""}};
 async function planBeats(n,D,s,ctxPart,note){
@@ -2479,14 +2501,14 @@ async function planBeats(n,D,s,ctxPart,note){
   if(rec0&&rec0.beats&&rec0.beats.edited&&arr0(rec0.beats.list).length>=2)return rec0.beats;
   try{
     const r=await generateJson("Task: Plan the beats of the scene.\n"+ctxPart+(has(note)?"\n\nNote from the author for this version: "+clip(note,300):"")
-     +'\n\nPlan this scene as 5 to 8 beats that together achieve its purpose and its change. Each beat is a different moment in order, never a recap. Tie each beat to what a character wants or fears, and say what information, decision or change it delivers if any. Use only people, places and facts from the plan and the story bible, give supporting characters an aim of their own, and where it suits them let someone show warmth, humour or vulnerability. Resolve nothing beyond the plan. Return JSON: {"feel":"one line: the emotional temperature of the scene","voices":[{"name":"","sound":"how this character sounds in this scene: warmth, pace, humour, what they push or dodge"}],"beats":[{"what":"what happens, one sentence","character":"whose want or fear drives it","carries":"the information, decision or change it delivers, or empty"}]}',{system:SYS_C,tries:1,timeoutMs:60000});
+     +'\n\nOffer 5 to 8 possible beats for this scene: moments the Writer may use, in any order, and may drop or replace. Together they should serve the scene brief. Each is a different moment, never a recap. Tie each beat to what a character wants or fears, and say what information, decision or change it could carry if any. Stay inside the bounds of the brief, give supporting characters an aim of their own, and where it suits them let someone show warmth, humour or vulnerability. Resolve nothing beyond the plan, and do not make the beats a script. Return JSON: {"feel":"one line: the emotional temperature of the scene","voices":[{"name":"","sound":"how this character sounds in this scene: warmth, pace, humour, what they push or dodge"}],"beats":[{"what":"what happens, one sentence","character":"whose want or fear drives it","carries":"the information, decision or change it delivers, or empty"}]}',{system:SYS_C,tries:1,timeoutMs:60000});
     return normBeats(r.data,r.model)
   }catch(e){return null}}
-const beatBlock=b=>b&&arr0(b.list).length?"\n\nPlan for this scene. Follow the beats in order, one moment each. They are a route, not a script, so the dialogue and the detail are yours:\n"+b.list.map((x,i)=>(i+1)+". "+x).join("\n")+(has(b.feel)?"\nFeel of the scene: "+b.feel:"")+(arr0(b.voices).length?"\nHow they sound in this scene:\n"+b.voices.map(v=>"- "+v).join("\n"):""):"";
+const beatBlock=b=>b&&arr0(b.list).length?"\n\nPossible moments for this scene. These are possibilities from the planner, not required steps. Use the ones that serve the scene, in any order, drop or replace any, and follow a better moment if the scene finds one. Stay inside the bounds of the brief. The dialogue and the detail are yours:\n"+b.list.map((x,i)=>(i+1)+". "+x).join("\n")+(has(b.feel)?"\nFeel of the scene: "+b.feel:"")+(arr0(b.voices).length?"\nHow they sound in this scene:\n"+b.voices.map(v=>"- "+v).join("\n"):""):"";
 function beatsHtml(rec,pid){
   const b=rec&&rec.beats;
   if(!b||!arr0(b.list).length)return'<div class="field-hint" style="margin:0 0 10px">No beat plan was saved for this scene.</div>';
-  return'<div class="field"><label for="btL">Beats'+(b.edited?" (edited by you)":"")+'</label><div class="field-hint">Nemesis planned these before writing. Edit them, one per line, then Regenerate and the Writer follows your version.</div><textarea id="btL" rows="6">'+esc(b.list.join("\n"))+'</textarea></div>'
+  return'<div class="field"><label for="btL">Possible beats'+(b.edited?" (edited by you)":"")+'</label><div class="field-hint help">Nemesis offered these before writing, as possibilities. Edit them, one per line, then Regenerate and the Writer works from your version. The Writer may still depart from them.</div><textarea id="btL" rows="6">'+esc(b.list.join("\n"))+'</textarea></div>'
    +'<div class="field"><label for="btF">Feel of the scene</label><input type="text" id="btF" value="'+esc(b.feel||"")+'"></div>'
    +(arr0(b.voices).length?'<div class="field-hint" style="margin:0 0 8px">How they sound here: '+b.voices.map(esc).join(" | ")+'</div>':'')
    +'<div class="btn-row"><button class="btn ghost" data-bt="reset" data-id="'+pid+'"'+(b.edited?'':' disabled')+'>Plan them fresh next time</button><button class="btn ghost" data-bt="save" data-id="'+pid+'">Save beats</button></div>'}
@@ -2530,7 +2552,7 @@ async function deepenEntries(n,targets,note){
       touched.set(e.id,e);added++}}
   if(touched.size)await dbBatch([...touched.values()].map(e=>["entities",stamp(e)]));
   return{added,entries:touched.size,model:r.model}}
-const deepenHtml=e=>e.id?'<div class="field" style="margin-top:12px"><label for="eDN">Deepen this entry</label><div class="field-hint">Nemesis suggests what is missing. You apply or dismiss each one. Save first if you edited the fields above.</div><input type="text" id="eDN" placeholder="Optional: what should it dig into?"></div><div class="btn-row"><button class="btn ghost" data-dn="one" data-eid="'+e.id+'">'+icon("sparkles",16)+' Deepen</button></div>':'';
+const deepenHtml=e=>e.id?'<div class="field" style="margin-top:12px"><label for="eDN">Deepen this entry</label><div class="field-hint help">Nemesis suggests what is missing. You apply or dismiss each one. Save first if you edited the fields above.</div><input type="text" id="eDN" placeholder="Optional: what should it dig into?"></div><div class="btn-row"><button class="btn ghost" data-dn="one" data-eid="'+e.id+'">'+icon("sparkles",16)+' Deepen</button></div>':'';
 const deepEditHtml=e=>{const l=DEEPK[e.kind];return l?deepFieldsHtml(e.profile||{},l,"Deeper detail (optional)","Optional detail the planner and the Writer can use when this comes up. It never blocks writing.")+profUpdHtml(e):""};
 const deepBar=(cat,list)=>DEEPK[cat]&&list.length?'<div class="kb-actions" style="margin:0 0 10px"><button class="btn ghost fit" data-dn="cat" data-cat="'+cat+'">'+icon("sparkles",16)+' Deepen these ('+list.length+')</button></div>':'';
 addEventListener("click",async ev=>{
@@ -2557,7 +2579,7 @@ function povCard(n,D){
     const c=byCh.get(ch)||new Map();c.set(vp,(c.get(vp)||0)+1);byCh.set(ch,c)});
   const arr=[...rows.values()].sort((a,b)=>b.pl-a.pl),named=[p.povMain,p.povSecond].filter(has),idle=named.filter(x=>!arr.some(r=>sameNm(r.name,x)));
   const chl=[...byCh.keys()].sort((a,b)=>a-b).slice(-8).map(k=>'<div class="field-hint" style="margin:0">Chapter '+k+': '+[...byCh.get(k)].map(x=>esc(x[0])+(x[1]>1?" x"+x[1]:"")).join(", ")+'</div>').join("");
-  return'<div class="card" style="margin-bottom:14px"><div class="card-title">Viewpoints</div><div class="card-sub">Whose eyes each scene is through. This is for you to watch. Nothing is enforced.</div>'
+  return'<div class="card" style="margin-bottom:14px"><div class="card-title">Viewpoints</div><div class="card-sub help">Whose eyes each scene is through. This is for you to watch. Nothing is enforced.</div>'
    +(named.length?'<div class="field-hint" style="margin:0 0 6px">'+(has(p.povMain)?'Main: '+esc(p.povMain)+'. ':'')+(has(p.povSecond)?'Secondary: '+esc(p.povSecond)+'.':'')+'</div>':'')
    +arr.map(r=>'<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--border-soft)"><span style="font-weight:600">'+esc(r.name)+'</span><span class="card-sub" style="margin:0;text-align:right">'+r.w+' written, '+r.pl+' planned, '+r.chs.size+(r.chs.size===1?' chapter':' chapters')+(r.last?', last written in chapter '+r.last:'')+'</span></div>').join("")
    +(idle.length?'<div class="field-hint" style="margin:8px 0 0">No scene planned yet for '+idle.map(esc).join(" or ")+'.</div>':'')
@@ -2576,7 +2598,7 @@ async function bibleExtra(n,s){
    changed since (stale), whether it comes from a draft (draft) and which story entries it touches (links).
    cls: established = what the manuscript shows; approved = you confirmed it; planned = intended, not a fact; hypothesis = a suggestion or
    interpretation; belief = what a character says, knows or believes (never objective truth); craft and preference are reserved for later phases. */
-const SCHEMA=3;
+const SCHEMA=4;
 const CLSL={established:"Shown in the story",approved:"Approved by you",planned:"Planned",hypothesis:"Suggestion",belief:"Belief or claim",craft:"Craft note",preference:"Your preference"};
 /* The one place a class is decided for a record that has none. A suggestion becomes approved only when its status says you approved it. */
 function clsFill(s,o){
@@ -2586,6 +2608,7 @@ function clsFill(s,o){
   if(s==="ledger"){if(!o.cls)o.cls=(o.kind==="claim"&&o.status!=="confirmed")?"belief":(o.kind==="person"?"hypothesis":"established");return o}
   if(o.status==="approved"&&(!o.cls||o.cls==="hypothesis"))o.cls="approved";
   else if(!o.cls)o.cls="hypothesis";
+  if((s==="entities"||s==="facts")&&o.protected===undefined)o.protected=!!(o.status==="approved"&&o.prov&&o.prov.origin==="director");
   return o}
 const rowConf=r=>r.status==="unverified"||r.kind==="person"?"low":(r.evidence?"high":"medium");
 /* a person or place a ledger row touches: its subject plus every named participant */
@@ -2624,21 +2647,6 @@ async function memoryOf(n,e){
    scenes:sceneIds.size,kinds:LKINDS.map(k=>[k[1],row.filter(r=>r.kind===k[0]).length]).filter(x=>x[1]),
    planned:pl.filter(x=>!written.has(x.id)).length}}
 const tagOf=r=>r?(r.stale?" (out of date, the scene changed)":r.draft?" (from a draft)":""):"";
-async function entMemoryHtml(e){
-  try{
-    const n=await dbGet("novels",S.novelId),m=await memoryOf(n,e);
-    if(!m.scenes&&!m.planned&&!m.knows.length&&!m.thinks.length)return'<div class="field"><label>In the story so far</label><div class="field-hint" style="margin:0">Nothing written about this yet.</div></div>';
-    const ln=(t,r)=>'<div style="padding:6px 0;border-top:1px solid var(--border-soft);font-size:13.5px"><span class="card-sub" style="margin:0 8px 0 0">'+t+'</span>'+(r?esc(r.text)+' <span class="field-hint" style="margin:0">'+whereLbl(r.storyOrder)+tagOf(r)+'</span>':"")+'</div>';
-    let h='<div class="field"><label>In the story so far</label><div class="field-hint" style="margin:0 0 4px">Worked out from the written scenes. What a character knows or believes is kept apart from what is true.</div>';
-    if(isChar(e)){
-      if(m.where)h+=ln("Where",m.where);
-      m.holds.slice(0,5).forEach(r=>{h+=ln("Holds",Object.assign({},r,{text:r.subject+": "+r.text}))});
-      if(m.event)h+=ln("Last event",m.event);
-      if(m.relation)h+=ln("Relationship",m.relation);
-      m.knows.slice(0,4).forEach(p=>{h+='<div style="padding:6px 0;border-top:1px solid var(--border-soft);font-size:13.5px"><span class="card-sub" style="margin:0 8px 0 0">Knows</span>'+esc(clip(p.text,160))+'</div>'});
-      m.thinks.slice(0,4).forEach(x=>{h+='<div style="padding:6px 0;border-top:1px solid var(--border-soft);font-size:13.5px"><span class="card-sub" style="margin:0 8px 0 0">'+(x.k.stance==="suspects"?"Suspects":"Believes")+'</span>'+esc(clip(x.k.believedValue||x.p.text,160))+'</div>'})}
-    h+='<div class="field-hint" style="margin:6px 0 0">'+(m.scenes?'Appears in '+m.scenes+' written scene'+(m.scenes===1?'':'s')+(m.kinds.length?': '+m.kinds.map(x=>x[1]+' '+(x[1]===1?x[0].toLowerCase().replace(/s$/,""):x[0].toLowerCase())).join(", "):"")+'.':"Not in a written scene yet.")+(m.planned?' Planned, not written yet: '+m.planned+' scene'+(m.planned===1?'':'s')+'.':'')+'</div></div>';
-    return h}catch(x){return""}}
 /* ---------- migration to schema 3: fields only, nothing removed, safe to run twice ---------- */
 async function askBackup(){
   return new Promise(done=>{
@@ -2649,6 +2657,7 @@ async function askBackup(){
     o.querySelector("#schSave").onclick=async()=>{try{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([await exportAll()],{type:"application/json"}));a.download="nemesis-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);o.querySelector("#schMsg").textContent="Backup saved. You can continue.";o.querySelector("#schGo").textContent="Continue";o.querySelector("#schGo").className="btn primary";o.querySelector("#schSave").className="btn ghost"}catch(x){o.querySelector("#schMsg").textContent="The backup could not be saved. You can try again or continue."}};
     o.querySelector("#schGo").onclick=()=>{o.remove();done()}})}
 async function migrateNovel(n){
+  if((n.schema||0)>=3)return migrateP2(n);
   const ents=await dbBy("entities","novelId",n.id),ops=[],fill=(s,o)=>{const b=o.cls;clsFill(s,o);if(o.cls!==b)ops.push(["put",s,o])};
   for(const e of ents){fill("entities",e);for(const f of await dbBy("facts","entityId",e.id))fill("facts",f)}
   for(const x of await dbBy("plan","novelId",n.id))fill("plan",x);
@@ -2667,14 +2676,204 @@ async function migrateNovel(n){
   for(const rec of (await dbAll("scenes")).filter(r=>r.novelId===n.id&&r.status==="drafted")){try{
     if(!(await dbBy("ledger","sceneId",rec.planId)).length)await syncLedger(rec);
     if(!(await dbAll("knowledge")).some(k=>k.sceneId===rec.planId))await syncKnowledge(rec)}catch(x){}}
-  n.schema=SCHEMA;n.migratedAt=Date.now();await save("novels",n);return ops.length}
+  n.schema=3;n.migratedAt=Date.now();await save("novels",n);return ops.length+await migrateP2(n)}
 async function schemaGuard(quiet){
   const ns=(await dbAll("novels")).filter(n=>(n.schema||0)<SCHEMA);if(!ns.length)return 0;
   let content=false;for(const n of ns){if((await dbBy("entities","novelId",n.id)).length||(await dbBy("plan","novelId",n.id)).length){content=true;break}}
-  if(content&&!quiet)await askBackup();
+  if(content&&!quiet&&ns.some(n=>(n.schema||0)<3))await askBackup();
   let c=0;for(const n of ns){try{c+=await migrateNovel(n)}catch(x){}}
   return c}
 
+/* ---------- Phase 2: Director authority ---------- */
+/* One setting (n.autonomy, shown as Director-led, Collaborative or Autonomous) decides how independently Nemesis may commit creative
+   decisions. It is a policy applied to the same writing system, not a different engine. Consequence, not activity, decides what needs you:
+   ordinary writing never waits, a developing story never waits on approvals, and a small set of permanent developments go to one queue. */
+const CONS={
+ death:{lab:"A character dies",why:"A death is permanent, so you decide whether it stands.",delegable:true,alt:"Keep the death, rewrite the scene so they survive, or tell Nemesis what should happen instead."},
+ removal:{lab:"A character leaves the story for good",why:"A permanent exit changes who the story can use.",delegable:true,alt:"Keep it, rewrite the scene so they stay, or say what should happen instead."},
+ transformation:{lab:"An irreversible change to a person",why:"This cannot be undone later without a retcon.",delegable:true,alt:"Keep it, rewrite so it is not permanent, or say what should happen instead."},
+ resolution:{lab:"A mystery, arc or central conflict is settled",why:"It resolves something earlier or differently than you approved.",delegable:true,alt:"Keep it, rewrite so it stays open, or say what should happen instead."},
+ subplot:{lab:"A new subplot or recurring character",why:"It adds a commitment that will shape later chapters.",delegable:true,alt:"Keep it, rewrite it as a passing detail, or say what should happen instead."},
+ reversal:{lab:"It goes against something you approved",why:"You approved the opposite. Nemesis cannot overrule you.",delegable:false,alt:"Keep the change (it replaces your earlier decision), or rewrite the scene to respect it."},
+ premise:{lab:"It changes the premise, ending, a world rule or history",why:"These are foundations. Only you can change them.",delegable:false,alt:"Keep the change (it becomes the new foundation), or rewrite the scene to respect what you set."}};
+const isProtected=(s,r)=>!!r&&(r.protected===true||(s==="plan"&&r.layer===1)||(s==="entities"&&r.kind==="rules"));
+/* what happens to a flagged development: queue it for you, let it through because you delegated that kind, or (Autonomous only) let a
+   subplot through. Foundations and your own decisions can never be delegated. */
+function consAction(n,type){
+  const c=CONS[type];if(!c)return"ignore";
+  if(!c.delegable)return"queue";
+  if(arr0(n.delegations).some(d=>!d.revoked&&d.scope===type))return"delegated";
+  if(type==="subplot"&&(n.autonomy||"guided")==="auto")return"proceed";
+  return"queue"}
+const CONS_RULE=" consequences: only permanent developments the scene itself SHOWS happening, never threats, fears, plans or anything a character imagines or claims. type is one of: death (a character is shown dying or confirmed dead), removal (a character leaves the story for good), transformation (a person is irreversibly changed in body, nature or allegiance), resolution (a mystery, arc or central conflict is settled for good), subplot (a new subplot begins, or a new named character who will clearly matter later), reversal (the scene contradicts one of the approved decisions listed above), premise (the scene changes the premise, the ending, a world rule or established history). who is the person or thing affected, what is one sentence, and evidence is a short quote copied exactly from the scene. Most scenes have none, so return an empty list rather than guess.";
+async function protectedLines(n){
+  const out=[],pl=(await dbBy("plan","novelId",n.id)).find(x=>x.layer===1&&x.status==="approved");
+  if(pl)out.push("Premise: "+clip(pl.summary,240));
+  for(const e of await dbBy("entities","novelId",n.id)){
+    if(isProtected("entities",e)&&has(e.summary))out.push(e.name+": "+clip(e.summary,140));
+    for(const f of await dbBy("facts","entityId",e.id))if(f.status!=="superseded"&&isProtected("facts",f))out.push(e.name+": "+clip(f.text,140))}
+  return out.slice(0,14)}
+const consBlock=p=>p.length?"\n\nDecisions the director approved. The scene must not contradict them:\n"+p.map(x=>"- "+x).join("\n"):"";
+/* your rulings go into every later prompt, so an answer is respected from the next scene and the next plan */
+async function rulingsBlock(n){
+  const nn=(await dbGet("novels",n.id))||n,r=arr0(nn.rulings).slice(-12);
+  if(!r.length)return"";
+  return"\n\nDirector decisions. These are final. Never undo or contradict them without proposing a change:\n"+r.map(x=>"- "+(x.answer==="approved"?"Settled: ":x.answer==="rejected"?"Must not happen: ":"Instead of what was written: ")+x.text).join("\n")}
+/* ---------- the queue ---------- */
+const qOpen=p=>p.kind==="consequence"&&(p.status==="pending"||p.status==="deferred");
+async function queueItems(n){return(await dbBy("proposals","novelId",n.id)).filter(qOpen).sort((a,b)=>(a.storyOrder||0)-(b.storyOrder||0))}
+/* a decision only holds back scenes that come after it and involve the same people. Everything else carries on. */
+function blocksScene(p,D,nx){
+  const so=D.co[nx.parentId].order*1000+nx.order;
+  return p.storyOrder<so&&arr0(nx.participants).some(a=>arr0(p.affectsNames).some(b=>sameNm(a,b)))}
+async function queueFromScene(n,D,s,rec,ex,text){
+  const tn=nrm(text),items=arr0(ex&&ex.cons).filter(x=>has(x.ev)&&evOk(x.ev,tn)),all=await dbBy("proposals","novelId",n.id),mine=all.filter(p=>p.kind==="consequence"&&p.sceneId===s.id),keep=new Set(),ents=await dbBy("entities","novelId",n.id),ops=[],so=rec.chOrder*1000+rec.scOrder,now=Date.now();
+  for(const x of items){
+    const act=consAction(n,x.type),id="cq:"+s.id+":"+hashS(x.type+"|"+nrm(x.who)+"|"+nrm(x.what)),old=mine.find(p=>p.id===id);keep.add(id);
+    if(old){
+      /* the same development written again after you refused it is not accepted quietly */
+      if(old.status==="rejected"||old.status==="modified")ops.push(["put","proposals",stamp(Object.assign({},old,{status:"pending",reopened:(old.reopened||0)+1,answer:"",reopenedAt:now}))]);
+      continue}
+    const names=has(x.who)?[x.who]:arr0(s.participants),ids=names.map(v=>{const e=entFor(ents,v);return e&&e.id}).filter(Boolean);
+    if(act==="queue")ops.push(["put","proposals",stamp({id,novelId:n.id,kind:"consequence",status:"pending",type:x.type,sceneId:s.id,recId:rec.id,storyOrder:so,payload:{ctype:x.type,who:x.who,what:x.what,evidence:x.ev},why:CONS[x.type].why,alt:CONS[x.type].alt,affects:ids,affectsNames:names,prov:{origin:"ai",at:now}})]);
+    else if(act==="delegated"||act==="proceed")ops.push(["put","decisions",stamp({id:"dc:"+id,novelId:n.id,targetType:"consequence",targetId:id,action:act==="delegated"?"delegated":"proceed",type:x.type,note:CONS[x.type].lab+": "+clip(x.what,140),sceneId:s.id,at:now})])}
+  mine.filter(p=>(p.status==="pending"||p.status==="deferred")&&!keep.has(p.id)).forEach(p=>ops.push(["put","proposals",stamp(Object.assign({},p,{status:"withdrawn",answer:"withdrawn",withdrawnAt:now}))]));
+  if(ops.length)await dbTx(ops)}
+/* how many items this scene will put in the queue that are not already decided, so a scene is not approved for you while it waits */
+async function openConsCount(n,s,ex,text){
+  const tn=nrm(text),all=(await dbBy("proposals","novelId",n.id)).filter(p=>p.kind==="consequence"&&p.sceneId===s.id);
+  return arr0(ex&&ex.cons).filter(x=>has(x.ev)&&evOk(x.ev,tn)&&consAction(n,x.type)==="queue").filter(x=>{const id="cq:"+s.id+":"+hashS(x.type+"|"+nrm(x.who)+"|"+nrm(x.what)),o=all.find(p=>p.id===id);return!o||o.status!=="approved"}).length}
+/* ---------- what stops writing: a verified problem in an earlier scene, or a decision that scene depends on. Nothing else. ---------- */
+function hardList(q){
+  q=q||{};const dm=new Set(q.dismissed||[]),out=[];
+  arr0(q.continuity).filter(c=>c.kind==="error"&&!dm.has(contKey(c))).forEach(c=>out.push(clip(c.detail,140)));
+  arr0(q.leaks).filter(l=>l.kind==="tell"&&!dm.has(leakKey(l))).forEach(l=>out.push(clip(l.detail,140)));
+  if(q.pov&&q.pov.off&&q.pov.guard&&!dm.has("pov"))out.push(clip(q.pov.what,140));
+  return out}
+async function gateOf(n,D,nx){
+  if((n.planApproach||"ending")==="ending"&&(n.autonomy||"guided")==="handson"){const m=profMissing(D.ents||[],nx);if(m.length)return"Ending first needs each character set before writing. Add or approve a profile for "+m.join(", ")+" in Ledger, Characters. Develop profiles can draft them for you."}
+  const so=D.co[nx.parentId].order*1000+nx.order;
+  for(const s of D.list){const r=D.byPlan[s.id];if(!r||!r.currentVersionId)continue;if(D.co[s.parentId].order*1000+s.order>=so)continue;
+    const h=hardList(r.qa);if(h.length)return"Chapter "+D.co[s.parentId].order+", scene "+s.order+" has a problem to fix or mark deliberate before writing on: "+h[0]}
+  const bl=(await queueItems(n)).filter(p=>blocksScene(p,D,nx));
+  if(bl.length)return bl.length+(bl.length===1?" decision is":" decisions are")+" waiting before this scene can be written: "+CONS[bl[0].type].lab.toLowerCase()+". Open Decisions to answer."
+  return""}
+/* ---------- screens ---------- */
+const sceneLbl=(D,id)=>{const s=D.list.find(x=>x.id===id);return s?"chapter "+D.co[s.parentId].order+", scene "+s.order:"an earlier scene"};
+async function queueCard(n,D){
+  const q=await queueItems(n);if(!q.length)return"";
+  const w=nx=>nx?q.filter(p=>blocksScene(p,D,nx)).length:0,nx=nextOf(D),stuck=D.list.filter(s=>!(D.byPlan[s.id]&&D.byPlan[s.id].currentVersionId)&&q.some(p=>blocksScene(p,D,s))).length;
+  return'<div class="card" style="margin-bottom:14px;border-color:var(--accent-soft,var(--border))"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><span class="pill voice">'+q.length+(q.length===1?' decision':' decisions')+' waiting</span></div>'
+   +'<div class="card-sub" style="margin:0 0 12px">'+esc(CONS[q[0].type].lab)+', '+esc(sceneLbl(D,q[0].sceneId))+(q.length>1?' and '+(q.length-1)+' more':'')+'. '+(stuck?stuck+(stuck===1?' scene is':' scenes are')+' waiting on '+(q.length===1?'it':'them')+'. The rest of the story carries on.':'Nothing else is held back.')+'</div>'
+   +'<div class="btn-row"><button class="btn primary" data-do="dqopen">Review decisions</button></div></div>'}
+async function openQueue(){
+  const n=await dbGet("novels",S.novelId),D=await floorData(n),q=await queueItems(n);
+  const wait=p=>D.list.filter(s=>!(D.byPlan[s.id]&&D.byPlan[s.id].currentVersionId)&&blocksScene(p,D,s)),
+   item=p=>{const w=wait(p),c=CONS[p.type];
+    return'<div class="card" style="margin-bottom:12px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><span class="pill voice">'+esc(c.lab)+'</span>'+(p.status==="deferred"?'<span class="pill neutral">Deferred, still waiting</span>':'')+(p.reopened?'<span class="pill alert">Written again</span>':'')+'</div>'
+     +'<div class="card-sub" style="margin:0 0 6px">'+esc(sceneLbl(D,p.sceneId))+(arr0(p.affectsNames).length?' · '+esc(p.affectsNames.join(", ")):'')+'</div>'
+     +'<div style="margin-bottom:6px">'+esc(p.payload.what)+'</div><div class="field-hint" style="margin:0 0 8px">“'+esc(p.payload.evidence)+'”</div>'
+     +'<div class="field-hint" style="margin:0 0 4px"><b>Why Nemesis is asking.</b> '+esc(p.why)+(p.reopened?' It wrote this again after you said no.':'')+'</div>'
+     +'<div class="field-hint" style="margin:0 0 4px"><b>Your options.</b> '+esc(p.alt)+'</div>'
+     +'<div class="field-hint" style="margin:0 0 10px"><b>Waiting on this.</b> '+(w.length?w.slice(0,3).map(s=>esc(sceneLbl(D,s.id))).join(", ")+(w.length>3?' and '+(w.length-3)+' more':''):'Nothing yet.')+'</div>'
+     +'<div class="btn-row"><button class="btn primary" data-do="dqyes" data-id="'+esc(p.id)+'">Keep it</button><button class="btn ghost" data-do="dqno" data-id="'+esc(p.id)+'">Rewrite the scene</button></div>'
+     +'<div class="btn-row" style="margin-top:8px"><button class="btn ghost" data-do="dqmod" data-id="'+esc(p.id)+'">Change it</button>'+(p.status==="deferred"?'':'<button class="btn ghost" data-do="dqdefer" data-id="'+esc(p.id)+'">Decide later</button>')+'</div>'
+     +(c.delegable?'<div class="btn-row" style="margin-top:8px"><button class="btn ghost" data-do="dqdel" data-id="'+esc(p.id)+'">Let Nemesis decide these</button></div>':'')+'</div>'};
+  openSheet('<div class="sheet-sticky-top"><div class="sheet-handle"></div><h2>Decisions</h2></div><div class="field-hint help" style="margin:0 0 12px">Only permanent developments and anything that goes against what you approved come here. Scenes that do not depend on a decision keep being written.</div>'
+   +(q.length?q.map(item).join(""):'<div class="field-hint">Nothing is waiting for you.</div>')+'<div class="btn-row" style="margin-top:8px"><button class="btn ghost" data-do="close">Close</button></div>')}
+const delegHtml=n=>{const d=arr0(n.delegations).filter(x=>!x.revoked);
+  return'<div class="field" style="margin-top:14px"><label>Delegated to Nemesis</label>'+(d.length?d.map(x=>'<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border-soft)"><span style="font-size:13.5px">'+esc(CONS[x.scope]?CONS[x.scope].lab:x.scope)+'</span><button type="button" class="btn ghost fit" data-do="dqrevoke" data-id="'+esc(x.id)+'">Take back</button></div>').join(""):'<div class="field-hint" style="margin:0">Nothing. You answer every permanent development yourself.</div>')+'<div class="field-hint help" style="margin:6px 0 0">Foundations and anything you approved can never be delegated.</div></div>'};
+async function answerConsequence(id,act,text){
+  const p=await dbGet("proposals",id);if(!p||!qOpen(p))return;
+  const n=await dbGet("novels",p.novelId),now=Date.now(),what=p.payload.what,ops=[];
+  const rule=(answer,t)=>{n.rulings=arr0(n.rulings).filter(r=>r.itemId!==p.id).concat([{id:uid(),itemId:p.id,type:p.type,answer,text:clip(t,240),at:now}]).slice(-40)};
+  if(act==="approve"){
+    rule("approved",what);p.status="approved";
+    const ents=await dbBy("entities","novelId",n.id),e=has(p.payload.who)?entFor(ents,p.payload.who):null;
+    if(e)ops.push(["put","facts",stamp({entityId:e.id,text:clip(what,240),scope:"permanent",status:"approved",cls:"approved",protected:true,prov:{origin:"director",ref:p.id,at:now}})])}
+  else if(act==="reject"){rule("rejected",what);p.status="rejected"}
+  else if(act==="modify"){if(!has(text))return false;rule("instead",what+" -> "+clip(text,160));p.status="modified";p.instead=clip(text,240)}
+  else if(act==="defer"){p.status="deferred"}
+  p.answer=act;p.answeredAt=now;
+  ops.push(["put","proposals",p],["put","decisions",stamp({novelId:n.id,targetType:"consequence",targetId:p.id,action:act,type:p.type,note:clip(what,160)+(p.instead?" | instead: "+p.instead:""),at:now})],["put","novels",n]);
+  if(act==="reject"||act==="modify"){const r=(await dbAll("scenes")).find(x=>x.novelId===n.id&&x.planId===p.sceneId);if(r){r.rework={itemId:p.id,text:act==="reject"?"Not allowed: "+what:"Change: "+what+" -> "+p.instead,at:now};ops.push(["put","scenes",r])}}
+  await dbTx(ops);return true}
+addEventListener("click",async e=>{
+  const t=e.target.closest("[data-do]");if(!t)return;const d=t.dataset.do,id=t.dataset.id;
+  if(d==="dqopen")return openQueue();
+  if(d==="dqyes"||d==="dqno"||d==="dqdefer"){const ok=await answerConsequence(id,d==="dqyes"?"approve":d==="dqno"?"reject":"defer");toast(d==="dqyes"?"Kept. Added to the story as your decision.":d==="dqno"?"Noted. Regenerate the scene to rewrite it. Nemesis will not do this again.":"Left for later. The scenes that depend on it keep waiting.");await render();return openQueue()}
+  if(d==="dqmod"){return openSheet('<div class="sheet-sticky-top"><div class="sheet-handle"></div><h2>Change it</h2></div><div class="field"><label for="dqT">What should happen instead?</label><textarea id="dqT" rows="4" data-autofocus></textarea></div><div class="btn-row"><button class="btn ghost" data-do="dqopen">Back</button><button class="btn primary" data-do="dqmodsave" data-id="'+esc(id)+'">Save my decision</button></div>')}
+  if(d==="dqmodsave"){const v=$("#dqT").value.trim();if(!v)return toast("Say what should happen instead.");await answerConsequence(id,"modify",v);toast("Noted. Regenerate the scene so it follows your change.");await render();return openQueue()}
+  if(d==="dqdel"){
+    const p=await dbGet("proposals",id);if(!p)return;
+    if(!await canonConfirm('Let Nemesis decide "'+CONS[p.type].lab.toLowerCase()+'" on its own from now on? You can take this back in Novel settings.',{ok:"Delegate this",no:"Not now"}))return;
+    const n=await dbGet("novels",p.novelId);n.delegations=arr0(n.delegations).concat([{id:uid(),scope:p.type,at:Date.now(),revoked:false}]);await save("novels",n);
+    await answerConsequence(id,"approve");toast("Delegated. This one is kept.");await render();return openQueue()}
+  if(d==="dqrevoke"){const n=await dbGet("novels",S.novelId),x=arr0(n.delegations).find(v=>v.id===id);if(x){x.revoked=true;x.revokedAt=Date.now();await save("novels",n);toast("Taken back. You will be asked again.")}return render()}});
+/* ---------- migration step for schema 4: your approvals become protected ---------- */
+async function migrateP2(n){
+  const ops=[],dec=await dbBy("decisions","novelId",n.id),handApproved=new Set();
+  dec.filter(d=>d.targetType==="plan"&&(d.action==="approve"||d.action==="modify")).forEach(d=>String(d.targetId||"").split(",").forEach(i=>i&&handApproved.add(i)));
+  const viaProposal=new Set(dec.filter(d=>d.targetType==="proposal"&&d.action!=="reject").map(d=>d.targetId));
+  const ents=await dbBy("entities","novelId",n.id);
+  for(const e of ents){
+    const pe=e.protected!==undefined?e.protected:(e.status==="approved"&&((e.prov&&e.prov.origin==="director")||(e.prov&&viaProposal.has(e.prov.ref))));
+    if(e.protected===undefined){e.protected=!!pe;ops.push(["put","entities",e])}
+    for(const f of await dbBy("facts","entityId",e.id))if(f.protected===undefined){f.protected=!!(f.status==="approved"&&((f.prov&&f.prov.origin==="director")||(f.prov&&viaProposal.has(f.prov.ref))));ops.push(["put","facts",f])}}
+  for(const x of await dbBy("plan","novelId",n.id))if(x.protected===undefined){x.protected=!!(x.status==="approved"&&(x.layer===1||handApproved.has(x.id)));ops.push(["put","plan",x])}
+  for(let i=0;i<ops.length;i+=400)await dbTx(ops.slice(i,i+400));
+  if(!Array.isArray(n.delegations))n.delegations=[];if(!Array.isArray(n.rulings))n.rulings=[];
+  n.schema=SCHEMA;n.migratedAt=Date.now();await save("novels",n);return ops.length}
+/* ---------- cleaner rows for the Story state sheet and the entry sheet ---------- */
+function stRow(r){
+  const p=STPILL[r.status]||["neutral",r.status],rej=r.review==="rejected",
+   act=rej?'<button class="btn ghost fit" data-do="stback" data-id="'+esc(r.id)+'">Put back</button>'
+    :r.review==="pending"?(r.kind==="person"?'<button class="btn primary fit" data-do="stadd" data-k="characters" data-id="'+esc(r.id)+'">Add as character</button><button class="btn ghost fit" data-do="stadd" data-k="places" data-id="'+esc(r.id)+'">Add as place</button>':'')+'<button class="btn ghost fit" data-do="stdismiss" data-id="'+esc(r.id)+'">Mark as deliberate</button><button class="btn ghost fit" data-do="fsc" data-id="'+esc(r.sceneId)+'">Open scene</button>'
+    :'<button class="btn ghost fit" data-do="stwrong" data-id="'+esc(r.id)+'">Not true</button>';
+  return'<div style="padding:14px 0;border-top:1px solid var(--border-soft)">'
+   +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"><span class="pill '+p[0]+'">'+p[1]+'</span>'+(r.draft?'<span class="pill neutral">Draft</span>':'')+(r.stale?'<span class="pill alert">Out of date</span>':'')+(rej?'<span class="pill alert">Not true</span>':'')+'</div>'
+   +'<div style="line-height:1.4;'+(rej?'opacity:.55;text-decoration:line-through':'')+'">'+esc(r.text)+'</div>'
+   +(r.evidence?'<div class="field-hint" style="margin:6px 0 0">“'+esc(r.evidence)+'”</div>':'')
+   +'<div class="field-hint" style="margin:6px 0 0">'+whereLbl(r.storyOrder)+(r.subject?' · '+esc(r.subject):'')+' · '+esc(CLSL[r.cls||"established"])+'</div>'
+   +(r.why?'<div class="field-hint warn" style="margin:6px 0 0">'+esc(r.why)+'</div>':'')
+   +'<div class="btn-row" style="margin-top:10px;flex-wrap:wrap">'+act+'</div></div>'}
+async function entMemoryHtml(e){
+  try{
+    const n=await dbGet("novels",S.novelId),m=await memoryOf(n,e),
+     row=(l,v,tag)=>'<div style="display:grid;grid-template-columns:78px 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--border-soft)"><div class="card-sub" style="margin:0">'+l+'</div><div style="font-size:13.5px;line-height:1.4">'+v+(tag?'<div class="field-hint" style="margin:2px 0 0">'+tag+'</div>':'')+'</div></div>',
+     tg=r=>r.stale?"Out of date, the scene changed":r.draft?"From a draft":"";
+    const head='<div class="field"><label>In the story so far</label>';
+    if(!m.scenes&&!m.planned&&!m.knows.length&&!m.thinks.length)return head+'<div class="field-hint" style="margin:0">Nothing written about this yet.</div></div>';
+    let h=head+'<div style="border:1px solid var(--border-soft);border-radius:12px;padding:2px 12px 4px;background:var(--surface,transparent)">';
+    const R=(l,r,t)=>row(l,esc(t||r.text),[whereLbl(r.storyOrder),tg(r)].filter(Boolean).join(" · "));
+    if(isChar(e)){
+      if(m.where)h+=R("Where",m.where);
+      m.holds.slice(0,5).forEach(r=>{h+=R("Holds",r,r.subject+": "+r.text)});
+      if(m.event)h+=R("Last event",m.event);
+      if(m.relation)h+=R("Ties",m.relation);
+      m.knows.slice(0,4).forEach(p=>{h+=row("Knows",esc(clip(p.text,160)))});
+      m.thinks.slice(0,4).forEach(x=>{h+=row(x.k.stance==="suspects"?"Suspects":"Believes",esc(clip(x.k.believedValue||x.p.text,160)))})}
+    h+=row("Appears in",m.scenes?m.scenes+' written scene'+(m.scenes===1?'':'s')+(m.kinds.length?': '+m.kinds.map(x=>x[1]+' '+(x[1]===1?x[0].toLowerCase().replace(/s$/,""):x[0].toLowerCase())).join(", "):""):"No written scene yet")+(m.planned?row("Planned",m.planned+' scene'+(m.planned===1?'':'s')+' not written yet'):"");
+    return h+'</div><div class="field-hint help" style="margin:6px 0 0">What a character knows or believes is kept apart from what is true.</div></div>'}catch(x){return""}}
+
+
+(function(){const enh=()=>{document.querySelectorAll(".help:not([data-qm])").forEach(el=>{el.dataset.qm="1";const b=document.createElement("button");b.type="button";b.className="qm";b.textContent="?";b.setAttribute("aria-expanded","false");b.setAttribute("aria-label","Show help");b.dataset.do="qm";el.classList.add("qmnote");el.hidden=true;const f=el.closest(".field"),lab=f&&f.querySelector(":scope>label");if(lab&&(lab.compareDocumentPosition(el)&4)){b.classList.add("qmi");lab.appendChild(b)}else el.parentNode.insertBefore(b,el)})};
+ let t=0;new MutationObserver(()=>{if(t)return;t=requestAnimationFrame(()=>{t=0;enh()})}).observe(document.body,{childList:true,subtree:true});
+ document.addEventListener("click",e=>{const b=e.target.closest(".qm");if(!b)return;e.stopPropagation();const n=b.nextElementSibling;if(!n)return;const o=n.hidden;n.hidden=!o;b.setAttribute("aria-expanded",String(o));b.setAttribute("aria-label",o?"Hide help":"Show help")},true);enh()})();
+/* ---------- Phase 3: dramatic planning. A scene brief is direction, not a script. Beats are possibilities. A departure is recorded, not punished. ---------- */
+const BKEYS=[["situation","Situation"],["question","Open question"],["intentions","What they are after"],["pressure","Pressure"],["stakes","Stakes"],["movement","Where it may end up"],["bounds","Bounds"]];
+const BMAP={pnQ:"question",pnI:"intentions",pnP:"pressure",pnK:"stakes",pnB:"bounds"};
+const normBrief=(o,s)=>{o=o||{};const g=(k,m)=>{const v=o[k];return clip(typeof v==="string"?v:Array.isArray(v)?v.filter(x=>typeof x==="string").join("; "):"",m)};
+  const b={situation:g("situation",300),question:g("question",200),intentions:g("intentions",260),pressure:g("pressure",200),stakes:g("stakes",200),movement:g("movement",200),bounds:g("bounds",240)};
+  if(!has(b.situation)&&s&&has(s.purpose))b.situation=clip(s.purpose,300);if(!has(b.movement)&&s&&has(s.change))b.movement=clip(s.change,200);return b};
+const briefOf=s=>{const b=normBrief(s&&s.brief,null);if(!has(b.situation)&&s&&has(s.summary))b.situation=clip(s.summary,300);if(!has(b.movement)&&s&&has(s.change))b.movement=clip(s.change,200);return b};
+const briefText=s=>{const b=briefOf(s);return"Scene brief (direction for this scene, not a script):\n"+BKEYS.filter(([k])=>has(b[k])).map(([k,l])=>l+": "+b[k]).join("\n")+(has(b.movement)?"":"\nNo movement is set. This can be a quiet scene: it is enough that mood, pressure or understanding shifts.")};
+const devOf=r=>r&&r.deviation&&r.deviation.level&&r.deviation.level!=="none"&&has(r.deviation.what)?r.deviation:null;
+async function writtenLines(n,k){
+  try{const sc=(await dbAll("scenes")).filter(r=>r.novelId===n.id&&r.currentVersionId&&r.summary).sort((a,b)=>(a.chOrder*1000+a.scOrder)-(b.chOrder*1000+b.scOrder)).slice(-(k||6));
+    return sc.map(r=>"Chapter "+r.chOrder+", scene "+r.scOrder+": "+clip(r.outcome||r.summary,220)+(devOf(r)?" (departed from the plan: "+clip(r.deviation.what,120)+")":""))}catch(e){return[]}}
+const DEVRULE=" deviation: compare what the scene actually does with the plan for it. level is none when it follows the plan, or only reorders, skips or replaces the possible moments; minor when it adds or changes things without changing what the plan sets up; major when it crosses the bounds or changes where the story is heading. what is one sentence naming the departure, empty when level is none. why is the reason inside the scene, empty if none. Skipping or reordering possible moments is never a departure. outcome: one sentence saying what actually changed by the end (a shift in situation, relationship, knowledge, pressure or mood), empty for a quiet scene.";
+const planForRecord=(s,rec)=>"\n\nThe plan for this scene (a direction, not a script):\n"+briefText(s)+(rec&&rec.beats&&arr0(rec.beats.list).length?"\nPossible moments that were offered:\n"+rec.beats.list.map((x,i)=>(i+1)+". "+x).join("\n"):"");
 try{if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol)){
   /* one notice per page load, whichever signal arrives first: the service worker saying a newer build finished downloading, or a new sw.js installing */
   let told=false;const upd=()=>{if(told)return;told=true;toast("A newer version is ready. Reload Nemesis to use it.","info")};
